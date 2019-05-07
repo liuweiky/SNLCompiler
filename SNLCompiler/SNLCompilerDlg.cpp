@@ -7,6 +7,7 @@
 #include "SNLCompiler.h"
 #include "SNLCompilerDlg.h"
 #include "afxdialogex.h"
+#include "LexicalAnalyzer.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -100,7 +101,10 @@ BOOL CSNLCompilerDlg::OnInitDialog()
 	SetIcon(m_hIcon, FALSE);		// 设置小图标
 
 	// TODO: 在此添加额外的初始化代码
+	LexicalAnalyzer la;
 
+	la.getTokenList();
+	la.Lex2File();
 	return TRUE;  // 除非将焦点设置到控件，否则返回 TRUE
 }
 
