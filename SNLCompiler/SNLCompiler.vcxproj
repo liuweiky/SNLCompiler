@@ -195,6 +195,7 @@
     <ClInclude Include="SNLCompiler.h" />
     <ClInclude Include="SNLCompilerDlg.h" />
     <ClInclude Include="targetver.h" />
+    <ClInclude Include="Utils.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="LexicalAnalyzer.cpp" />
@@ -207,6 +208,7 @@
     </ClCompile>
     <ClCompile Include="SNLCompiler.cpp" />
     <ClCompile Include="SNLCompilerDlg.cpp" />
+    <ClCompile Include="Utils.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="SNLCompiler.rc" />
