@@ -3,16 +3,12 @@
 */
 #pragma once
 
-#include <string>
-
-using namespace std;
-
 class Utils
 {
 public:
 	Utils();
 	~Utils();
-	static int str2int(string str);
-	static string int2str(int s);
+	static int cstr2int(CString str);
+	static CString int2cstr(int s);
 };
 

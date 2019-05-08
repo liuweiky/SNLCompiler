@@ -3,17 +3,12 @@
 */
 #pragma once
 
-#include <string>
-#include <fstream>
 #include <vector>
 #include "LogUtil.h"
 #include "Utils.h"
-#include <sstream>
 #include <map>
 
-using namespace std;
-
-const string LEXFILENAME = "../TestCase/out/lex.txt";
+const CString LEXFILENAME = _T("../TestCase/out/lex.txt");
 
 enum LexType
 {
@@ -60,7 +55,7 @@ enum LexType
 
 struct Token
 {
-	Token(int li, LexType le, string se) : line(li), lex(le), sem(se)
+	Token(int li, LexType le, CString se) : line(li), lex(le), sem(se)
 	{
 		/*string s = "";
 		stringstream ss;
@@ -72,7 +67,7 @@ struct Token
 	Token() { line = -1; lex = LexType::LEXERR; sem = ""; }
 	int line;
 	LexType lex;
-	string sem;
+	CString sem;
 };
 
 class LexicalAnalyzer
@@ -80,19 +75,22 @@ class LexicalAnalyzer
 public:
 	LexicalAnalyzer();
 	~LexicalAnalyzer();
-	char getNextChar();
+	CString getNextChar();
 	void ungetNextChar();
-	string mOrignalSrcCode;
+	CString mOrignalSrcCode;
 	void getTokenList();
 
 	vector<Token> mTokenList;
 	int mSrcPtr, mCurLine;
 
-	map<LexType, string> mLex2String;
-	map<string, LexType> mReservedWords;
+	map<LexType, CString> mLex2String;
+	map<CString, LexType> mReservedWords;
 
 	void Lex2File();
-	bool isSingleDelimiter(char ch);
-	bool isReservedWord(string word);
+	bool isSingleDelimiter(CString ch);
+	bool isReservedWord(CString word);
+	bool isAlpha(CString ch);
+	bool isDigit(CString ch);
+	bool isAlNum(CString ch);
 };
 

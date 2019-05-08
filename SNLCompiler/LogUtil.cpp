@@ -13,40 +13,28 @@ LogUtil::~LogUtil()
 }
 
 
-void LogUtil::info(string s)
+void LogUtil::Info(CString s)
 {
-	string ostring = "[INFO]\t" + s;
+	CString ostring = _T("[INFO]\t");
+	ostring += s;
 	ostring += '\n';
-	size_t size = ostring.length();
-	wchar_t* buffer = new wchar_t[size + 1];
-	MultiByteToWideChar(CP_ACP, 0, ostring.c_str(), size, buffer, size * sizeof(wchar_t));
-	buffer[size] = 0;
-	OutputDebugString(buffer);
-	delete[] buffer;
+	OutputDebugString(ostring);
 }
 
 
-void LogUtil::Error(string s)
+void LogUtil::Error(CString s)
 {
-	string ostring = "[ERROR]\t" + s;
+	CString ostring = _T("[ERROR]\t");
+	ostring += s;
 	ostring += '\n';
-	size_t size = ostring.length();
-	wchar_t* buffer = new wchar_t[size + 1];
-	MultiByteToWideChar(CP_ACP, 0, ostring.c_str(), size, buffer, size * sizeof(wchar_t));
-	buffer[size] = 0;
-	OutputDebugString(buffer);
-	delete[] buffer;
+	OutputDebugString(ostring);
 }
 
 
-void LogUtil::Debug(string s)
+void LogUtil::Debug(CString s)
 {
-	string ostring = "[DEBUG]\t" + s;
+	CString ostring = _T("[DEBUG]\t");
+	ostring += s;
 	ostring += '\n';
-	size_t size = ostring.length();
-	wchar_t* buffer = new wchar_t[size + 1];
-	MultiByteToWideChar(CP_ACP, 0, ostring.c_str(), size, buffer, size * sizeof(wchar_t));
-	buffer[size] = 0;
-	OutputDebugString(buffer);
-	delete[] buffer;
+	OutputDebugString(ostring);
 }

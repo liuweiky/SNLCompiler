@@ -1,8 +1,6 @@
 #include "pch.h"
 #include "Utils.h"
 
-#include <sstream>
-
 Utils::Utils()
 {
 }
@@ -13,20 +11,14 @@ Utils::~Utils()
 }
 
 
-int Utils::str2int(string str)
+int Utils::cstr2int(CString str)
 {
-	int s;
-	stringstream ss;
-	ss << str;
-	ss >> s;
-	return s;
+	return _ttoi(str);
 }
 
-string Utils::int2str(int s)
+CString Utils::int2cstr(int s)
 {
-	string str;
-	stringstream ss;
-	ss << s;
-	ss >> str;
+	CString str;
+	str.Format(_T("%d"), s);
 	return str;
 }

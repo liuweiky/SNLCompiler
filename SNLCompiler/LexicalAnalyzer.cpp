@@ -1,24 +1,18 @@
 #include "pch.h"
 #include "LexicalAnalyzer.h"
-#include <cctype>
-#include <iomanip>
-
 
 LexicalAnalyzer::LexicalAnalyzer()
 {
-	ifstream infile("../TestCase/bubble_sort_err.txt");
-	string line;
-	if (!infile.is_open())
-		LogUtil::Error("Failed to read source code");
-	else
-	{
-		while (getline(infile, line))
-		{
-			mOrignalSrcCode += line;
-			mOrignalSrcCode += '\n';
-		}
-		LogUtil::Debug(mOrignalSrcCode);
-	}
+	CFile infile(_T("../TestCase/bubble_sort_err.txt"), CFile::modeRead, NULL);
+	int len = infile.GetLength();
+	char* buf = new char[len + 2];
+	buf[len] = buf[len + 1] = '\0';
+	infile.Read(buf, len);
+	mOrignalSrcCode = buf;
+	delete[] buf;
+	infile.Close();
+	
+
 	mSrcPtr = 0;
 	mCurLine = 1;
 
@@ -60,24 +54,24 @@ LexicalAnalyzer::LexicalAnalyzer()
 	mLex2String[LexType::UNDERANGE] = "<UNDERANGE>";
 	mLex2String[LexType::DOT] = "<DOT>";
 
-	mReservedWords["program"] = LexType::PROGRAM;
-	mReservedWords["var"] = LexType::VAR;
-	mReservedWords["integer"] = LexType::INTEGER;
-	mReservedWords["array"] = LexType::ARRAY;
-	mReservedWords["of"] = LexType::OF;
-	mReservedWords["procedure"] = LexType::PROCEDURE;
-	mReservedWords["var"] = LexType::VAR;
-	mReservedWords["begin"] = LexType::BEGIN;
-	mReservedWords["end"] = LexType::END;
-	mReservedWords["while"] = LexType::WHILE;
-	mReservedWords["do"] = LexType::DO;
-	mReservedWords["endwh"] = LexType::ENDWHILE;
-	mReservedWords["if"] = LexType::IF;
-	mReservedWords["then"] = LexType::THEN;
-	mReservedWords["else"] = LexType::ELSE;
-	mReservedWords["fi"] = LexType::FI;
-	mReservedWords["read"] = LexType::READ;
-	mReservedWords["write"] = LexType::WRITE;
+	mReservedWords[_T("program")] = LexType::PROGRAM;
+	mReservedWords[_T("var")] = LexType::VAR;
+	mReservedWords[_T("integer")] = LexType::INTEGER;
+	mReservedWords[_T("array")] = LexType::ARRAY;
+	mReservedWords[_T("of")] = LexType::OF;
+	mReservedWords[_T("procedure")] = LexType::PROCEDURE;
+	mReservedWords[_T("var")] = LexType::VAR;
+	mReservedWords[_T("begin")] = LexType::BEGIN;
+	mReservedWords[_T("end")] = LexType::END;
+	mReservedWords[_T("while")] = LexType::WHILE;
+	mReservedWords[_T("do")] = LexType::DO;
+	mReservedWords[_T("endwh")] = LexType::ENDWHILE;
+	mReservedWords[_T("if")] = LexType::IF;
+	mReservedWords[_T("then")] = LexType::THEN;
+	mReservedWords[_T("else")] = LexType::ELSE;
+	mReservedWords[_T("fi")] = LexType::FI;
+	mReservedWords[_T("read")] = LexType::READ;
+	mReservedWords[_T("write")] = LexType::WRITE;
 }
 
 
@@ -86,9 +80,14 @@ LexicalAnalyzer::~LexicalAnalyzer()
 }
 
 
-char LexicalAnalyzer::getNextChar()
+CString LexicalAnalyzer::getNextChar()
 {
-	return mSrcPtr == mOrignalSrcCode.size() ? '\0' : mOrignalSrcCode[mSrcPtr++];
+	CString ret = _T("");
+	if (mSrcPtr >= mOrignalSrcCode.GetLength())
+		ret = "\0";
+	else
+		ret = mOrignalSrcCode.GetAt(mSrcPtr++);
+	return ret;
 }
 
 void LexicalAnalyzer::ungetNextChar()
@@ -98,14 +97,14 @@ void LexicalAnalyzer::ungetNextChar()
 
 void LexicalAnalyzer::getTokenList()
 {
-	string str = "";
+	CString str = _T("");
 S0:
-	char cur_char = getNextChar();
-	if (isalpha(cur_char))
+	CString cur_char = getNextChar();
+	if (isAlpha(cur_char))
 	{
 		goto INID;
 	}
-	else if (isdigit(cur_char))
+	else if (isDigit(cur_char))
 	{
 		goto INNUM;
 	}
@@ -113,15 +112,15 @@ S0:
 	{
 		goto INSINGLE;
 	}
-	else if (cur_char == ':')
+	else if (cur_char == ":")
 	{
 		goto INASSIGN;
 	}
-	else if (cur_char == '{')
+	else if (cur_char == "{")
 	{
 		goto INCOMMENT;
 	}
-	else if (cur_char == '.')
+	else if (cur_char == ".")
 	{
 		goto INRANGE;
 	}
@@ -137,7 +136,7 @@ S0:
 INID:
 	str += cur_char;
 	cur_char = getNextChar();
-	if (isalnum(cur_char))
+	if (isAlNum(cur_char))
 	{
 		goto INID;
 	}
@@ -155,7 +154,7 @@ INID:
 INNUM:
 	str += cur_char;
 	cur_char = getNextChar();
-	if (isdigit(cur_char))
+	if (isDigit(cur_char))
 	{
 		goto INNUM;
 	}
@@ -175,67 +174,67 @@ INSINGLE:
 		t.line = mCurLine;
 		t.sem = str;
 		str = "";
-		if (cur_char == '\n')
+		if (cur_char == "\n")
 		{
 			mCurLine++;
 			goto S0;
 		}
-		else if (cur_char == '+')
+		else if (cur_char == "+")
 		{
 			t.lex = LexType::PLUS;
 		}
-		else if (cur_char == '-')
+		else if (cur_char == "-")
 		{
 			t.lex = LexType::MINUS;
 		}
-		else if (cur_char == '*')
+		else if (cur_char == "*")
 		{
 			t.lex = LexType::MULTIPLY;
 		}
-		else if (cur_char == '/')
+		else if (cur_char == "/")
 		{
 			t.lex = LexType::DIVIDE;
 		}
-		else if (cur_char == '(')
+		else if (cur_char == "(")
 		{
 			t.lex = LexType::LPARENTHESIS;
 		}
-		else if (cur_char == ')')
+		else if (cur_char == ")")
 		{
 			t.lex = LexType::RPARENTHESIS;
 		}
-		else if (cur_char == ';')
+		else if (cur_char == ";")
 		{
 			t.lex = LexType::SEMICOLON;
 		}
-		else if (cur_char == '[')
+		else if (cur_char == "[")
 		{
 			t.lex = LexType::LSQUAREBRACKET;
 		}
-		else if (cur_char == ']')
+		else if (cur_char == "]")
 		{
 			t.lex = LexType::RSQUAREBRACKET;
 		}
-		else if (cur_char == '=')
+		else if (cur_char == "=")
 		{
 			t.lex = LexType::EQU;
 		}
-		else if (cur_char == '<')
+		else if (cur_char == "<")
 		{
 			t.lex = LexType::LT;
 		}
-		else if (cur_char == '\0')
+		else if (cur_char == "\0")
 		{
 			t.lex = LexType::LEXEOF;
 			mTokenList.push_back(t);
 			return;
 		}
-		else if (cur_char == ' ' || cur_char == '\t' || cur_char == '\r')
+		else if (cur_char == " " || cur_char == "\t" || cur_char == "\r")
 		{
 			//t.lex = LexType::SPACE;
 			goto S0;
 		}
-		else if (cur_char == ',')
+		else if (cur_char == ",")
 		{
 			t.lex = LexType::COMMA;
 		}
@@ -249,7 +248,7 @@ INSINGLE:
 INASSIGN:
 	str += cur_char;
 	cur_char = getNextChar();
-	if (cur_char == '=')
+	if (cur_char == "=")
 	{
 		str += cur_char;
 		Token t(mCurLine, LexType::ASSIGN, str);
@@ -272,7 +271,7 @@ INCOMMENT:
 INRANGE:
 	str += cur_char;
 	cur_char = getNextChar();
-	if (cur_char == '.')
+	if (cur_char == ".")
 	{
 		str += cur_char;
 		Token t(mCurLine, LexType::UNDERANGE, str);
@@ -304,8 +303,8 @@ INERROR:
 	{
 		Token t(mCurLine, LexType::LEXERR, str + cur_char);
 		mTokenList.push_back(t);
-		string s = "Unexpected character '";
-		LogUtil::Error(s + cur_char + "' in line " + Utils::int2str(mCurLine));
+		CString s = _T("Unexpected character \"");
+		LogUtil::Error(s + cur_char + "\" in line " + Utils::int2cstr(mCurLine));
 		/*cur_char = getNextChar();
 		while (!isSingleDelimiter(cur_char))
 			cur_char = getNextChar();
@@ -320,41 +319,84 @@ INERROR:
 
 void LexicalAnalyzer::Lex2File()
 {
-	ofstream outfile(LEXFILENAME, ios::trunc);
-	if (!outfile.is_open())
-	{
-		LogUtil::Error("Unable to open " + LEXFILENAME);
-		return;
-	}
+	CFile outfile(LEXFILENAME, CFile::modeCreate | CFile::modeReadWrite);
+	CString outstr = _T("");
+	BYTE UH[] = { 0xff, 0xfe };
+	outfile.Write(UH, 2);
 	for (int i = 0; i < mTokenList.size(); i++)
 	{
 		Token t = mTokenList[i];
 		if (t.lex == LexType::LEXERR)
 		{
-			outfile << "[ERROR] Unexpected character \"" << t.sem << "\" in line " << t.line << endl;
+			outstr += _T("[ERROR] Unexpected character \"");
+			outstr += t.sem;
+			outstr += _T("\" in line ");
+			outstr += Utils::int2cstr(t.line);
+			outstr += "\r\n";
 			continue;
 		}
-		outfile << std::left << "LINE " << t.line << setw(5) << ": " << setw(20) << mLex2String[t.lex] << t.sem << endl;
+		CString linestr = _T("");
+		linestr += _T("LINE ");
+		linestr += Utils::int2cstr(t.line);
+		linestr += _T(": ");
+		int k = 10 - linestr.GetLength();
+		while (k--)
+			linestr += " ";
+		linestr += mLex2String[t.lex];
+		k = 30 - linestr.GetLength();
+		while (k--)
+			linestr += " ";
+		linestr += t.sem;
+		linestr += "\r\n";
+		outstr += linestr;
 	}
-	outfile.close();
+	outfile.Write((LPCTSTR)outstr.GetBuffer(outstr.GetLength()), outstr.GetLength() * sizeof(TCHAR));
+	outfile.Close();
+	AfxMessageBox(outstr);
 }
 
 
-bool LexicalAnalyzer::isSingleDelimiter(char ch)
+bool LexicalAnalyzer::isSingleDelimiter(CString ch)
 {
 
 	return (
-		ch == '+' || ch == '-' || ch == '*' || ch == '/'
-		|| ch == '(' || ch == ')' || ch == ';' || ch == '['
-		|| ch == ']' || ch == '=' || ch == '<' || ch == ' '
-		|| ch == '\n' || ch == '\t' || ch == '\r' || ch == '\0'
-		|| ch == ','
-		);
+		ch == "+" || ch == "-" || ch == "*" || ch == "/"
+		|| ch == "(" || ch == ")" || ch == ";" || ch == "["
+		|| ch == "]" || ch == "=" || ch == "<" || ch == " "
+		|| ch == "\n" || ch == "\t" || ch == "\r" || ch == "\0"
+		|| ch == ","
+	);
 }
 
 
-bool LexicalAnalyzer::isReservedWord(string word)
+bool LexicalAnalyzer::isReservedWord(CString word)
 {
 
 	return mReservedWords.find(word) != mReservedWords.end();
 }
+
+
+bool LexicalAnalyzer::isAlpha(CString ch)
+{
+	if (ch == "\0")
+		return false;
+	static CString alpha = _T("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ");
+	return alpha.Find(ch) != -1;
+}
+
+
+bool LexicalAnalyzer::isDigit(CString ch)
+{
+	if (ch == "\0")
+		return false;
+	static CString digit = _T("0123456789");
+	return digit.Find(ch) != -1;
+}
+
+
+bool LexicalAnalyzer::isAlNum(CString ch)
+{
+	return isAlpha(ch) || isDigit(ch);
+}
+
+

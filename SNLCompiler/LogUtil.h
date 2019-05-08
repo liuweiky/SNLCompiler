@@ -11,8 +11,8 @@ class LogUtil
 public:
 	LogUtil();
 	~LogUtil();
-	static void info(string s);
-	static void Error(string s);
-	static void Debug(string s);
+	static void Info(CString s);
+	static void Error(CString s);
+	static void Debug(CString s);
 };
 
