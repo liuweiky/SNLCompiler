@@ -340,12 +340,14 @@ void LexicalAnalyzer::Lex2File()
 		linestr += Utils::int2cstr(t.line);
 		linestr += _T(": ");
 		int k = 10 - linestr.GetLength();
-		while (k--)
-			linestr += " ";
+		if (k > 0)
+			while (k--)
+				linestr += " ";
 		linestr += mLex2String[t.lex];
 		k = 30 - linestr.GetLength();
-		while (k--)
-			linestr += " ";
+		if (k > 0)
+			while (k--)
+				linestr += " ";
 		linestr += t.sem;
 		linestr += "\r\n";
 		outstr += linestr;
