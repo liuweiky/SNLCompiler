@@ -17,6 +17,7 @@ enum LexType
 	TYPE,
 	UINTEGER,
 	ARRAY,
+	RECORD,
 	OF,
 	PROCEDURE,
 	EQU,
@@ -50,6 +51,7 @@ enum LexType
 	COMMA,			// ,
 	UNDERANGE,		// ..
 	DOT,			// .
+	RETURN,
 	LEXERR			// Not a lex element
 };
 

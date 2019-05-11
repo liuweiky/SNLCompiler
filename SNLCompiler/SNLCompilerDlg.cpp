@@ -8,6 +8,7 @@
 #include "SNLCompilerDlg.h"
 #include "afxdialogex.h"
 #include "LexicalAnalyzer.h"
+#include "RSyntaxParser.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -101,10 +102,17 @@ BOOL CSNLCompilerDlg::OnInitDialog()
 	SetIcon(m_hIcon, FALSE);		// 设置小图标
 
 	// TODO: 在此添加额外的初始化代码
+
 	LexicalAnalyzer la;
 
-	la.getTokenList();
-	la.Lex2File();
+	/*la.getTokenList();
+	la.Lex2File();*/
+	/*LogUtil::Error(Utils::FormatCString(_T("Missing <DOT> in line %d"), 5));*/
+
+	RSyntaxParser parser;
+	RTreeNode* r = parser.Parse();
+	parser.ReleaseTree(r);
+
 	return TRUE;  // 除非将焦点设置到控件，否则返回 TRUE
 }
 

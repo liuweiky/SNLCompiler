@@ -194,6 +194,7 @@
     <ClInclude Include="Resource.h" />
     <ClInclude Include="SNLCompiler.h" />
     <ClInclude Include="SNLCompilerDlg.h" />
+    <ClInclude Include="RSyntaxParser.h" />
     <ClInclude Include="targetver.h" />
     <ClInclude Include="Utils.h" />
   </ItemGroup>
@@ -208,6 +209,7 @@
     </ClCompile>
     <ClCompile Include="SNLCompiler.cpp" />
     <ClCompile Include="SNLCompilerDlg.cpp" />
+    <ClCompile Include="RSyntaxParser.cpp" />
     <ClCompile Include="Utils.cpp" />
   </ItemGroup>
   <ItemGroup>

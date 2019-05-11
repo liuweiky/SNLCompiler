@@ -22,3 +22,11 @@ CString Utils::int2cstr(int s)
 	str.Format(_T("%d"), s);
 	return str;
 }
+
+//template <typename... Types>
+//CString Utils::FormatCString(CString format, const Types& ... args)
+//{
+//	CString s;
+//	s.Format(format, args...);
+//	return s;
+//}

@@ -3,7 +3,7 @@
 
 LexicalAnalyzer::LexicalAnalyzer()
 {
-	CFile infile(_T("../TestCase/bubble_sort_err.txt"), CFile::modeRead, NULL);
+	CFile infile(_T("../TestCase/bubble_sort.txt"), CFile::modeRead, NULL);
 	int len = infile.GetLength();
 	char* buf = new char[len + 2];
 	buf[len] = buf[len + 1] = '\0';
@@ -53,8 +53,10 @@ LexicalAnalyzer::LexicalAnalyzer()
 	mLex2String[LexType::COMMA] = "<COMMA>";
 	mLex2String[LexType::UNDERANGE] = "<UNDERANGE>";
 	mLex2String[LexType::DOT] = "<DOT>";
+	mLex2String[LexType::RETURN] = "<RETURN>";
 
 	mReservedWords[_T("program")] = LexType::PROGRAM;
+	mReservedWords[_T("type")] = LexType::TYPE;
 	mReservedWords[_T("var")] = LexType::VAR;
 	mReservedWords[_T("integer")] = LexType::INTEGER;
 	mReservedWords[_T("array")] = LexType::ARRAY;
@@ -72,6 +74,7 @@ LexicalAnalyzer::LexicalAnalyzer()
 	mReservedWords[_T("fi")] = LexType::FI;
 	mReservedWords[_T("read")] = LexType::READ;
 	mReservedWords[_T("write")] = LexType::WRITE;
+	mReservedWords[_T("return")] = LexType::RETURN;
 }
 
 
