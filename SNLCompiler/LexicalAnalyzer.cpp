@@ -275,6 +275,13 @@ INCOMMENT:
 	//str += cur_char;
 	{
 		str = "";
+		cur_char = getNextChar();
+		while (cur_char != "" && cur_char != "}")
+		{
+			if (cur_char == "\n")
+				mCurLine++;
+			cur_char = getNextChar();
+		}
 		goto S0;
 	}
 
