@@ -106,7 +106,14 @@ BOOL CSNLCompilerDlg::OnInitDialog()
 
 	// TODO: 在此添加额外的初始化代码
 
-	
+	mListControl.InsertColumn(0, _T("LINE"));
+	mListControl.InsertColumn(1, _T("LEX"));
+	mListControl.InsertColumn(2, _T("SEM"));
+	mListControl.SetColumnWidth(0, 40);
+	mListControl.SetColumnWidth(1, 140);
+	mListControl.SetColumnWidth(2, 100);
+	// 设置整行选中
+	mListControl.SetExtendedStyle(mListControl.GetExtendedStyle() | LVS_EX_FULLROWSELECT);
 
 	/*la.getTokenList();
 	la.Lex2File();*/
@@ -178,14 +185,6 @@ void CSNLCompilerDlg::OnBnClickedTokenButton()
 	la.getTokenList();
 	la.Lex2File();
 	mListControl.DeleteAllItems();
-	mListControl.InsertColumn(0, _T("LINE"));
-	mListControl.InsertColumn(1, _T("LEX"));
-	mListControl.InsertColumn(2, _T("SEM"));
-	mListControl.SetColumnWidth(0, 40);
-	mListControl.SetColumnWidth(1, 140);
-	mListControl.SetColumnWidth(2, 100);
-	// 设置整行选中
-	mListControl.SetExtendedStyle(mListControl.GetExtendedStyle() | LVS_EX_FULLROWSELECT);
 	for (int i = la.mTokenList.size() - 1; i >= 0; i--)
 	{
 		CString str = _T("");
