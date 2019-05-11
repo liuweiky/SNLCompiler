@@ -61,12 +61,15 @@ CSNLCompilerDlg::CSNLCompilerDlg(CWnd* pParent /*=nullptr*/)
 void CSNLCompilerDlg::DoDataExchange(CDataExchange* pDX)
 {
 	CDialogEx::DoDataExchange(pDX);
+	DDX_Control(pDX, IDC_SRC_EDIT, mSrcEdit);
+	DDX_Control(pDX, IDC_TOKEN_LIST, mListControl);
 }
 
 BEGIN_MESSAGE_MAP(CSNLCompilerDlg, CDialogEx)
 	ON_WM_SYSCOMMAND()
 	ON_WM_PAINT()
 	ON_WM_QUERYDRAGICON()
+	ON_BN_CLICKED(IDC_TOKEN_BUTTON, &CSNLCompilerDlg::OnBnClickedTokenButton)
 END_MESSAGE_MAP()
 
 
@@ -103,15 +106,15 @@ BOOL CSNLCompilerDlg::OnInitDialog()
 
 	// TODO: 在此添加额外的初始化代码
 
-	LexicalAnalyzer la;
+	
 
 	/*la.getTokenList();
 	la.Lex2File();*/
 	/*LogUtil::Error(Utils::FormatCString(_T("Missing <DOT> in line %d"), 5));*/
 
-	RSyntaxParser parser;
+	/*RSyntaxParser parser;
 	RTreeNode* r = parser.Parse();
-	parser.ReleaseTree(r);
+	parser.ReleaseTree(r);*/
 
 	return TRUE;  // 除非将焦点设置到控件，否则返回 TRUE
 }
@@ -165,3 +168,38 @@ HCURSOR CSNLCompilerDlg::OnQueryDragIcon()
 	return static_cast<HCURSOR>(m_hIcon);
 }
 
+
+
+void CSNLCompilerDlg::OnBnClickedTokenButton()
+{
+	LexicalAnalyzer la;
+	mSrcEdit.GetWindowTextW(la.mOrignalSrcCode);
+	//la.mOrignalSrcCode += "\0\0";
+	la.getTokenList();
+	la.Lex2File();
+	mListControl.DeleteAllItems();
+	mListControl.InsertColumn(0, _T("LINE"));
+	mListControl.InsertColumn(1, _T("LEX"));
+	mListControl.InsertColumn(2, _T("SEM"));
+	mListControl.SetColumnWidth(0, 40);
+	mListControl.SetColumnWidth(1, 140);
+	mListControl.SetColumnWidth(2, 100);
+	// 设置整行选中
+	mListControl.SetExtendedStyle(mListControl.GetExtendedStyle() | LVS_EX_FULLROWSELECT);
+	for (int i = la.mTokenList.size() - 1; i >= 0; i--)
+	{
+		CString str = _T("");
+		Token t = la.mTokenList[i];
+		if (t.lex == LexType::LEXERR)
+		{
+			int idx = mListControl.InsertItem(0, Utils::int2cstr(t.line));
+			mListControl.SetItemText(idx, 1, _T("[ERROR] Unexpected Character"));
+			mListControl.SetItemText(idx, 2, t.sem);
+			continue;
+		}
+		int idx = mListControl.InsertItem(0, Utils::int2cstr(t.line));
+		mListControl.SetItemText(idx, 1, la.mLex2String[t.lex]);
+		if (!la.isReservedWord(t.sem) && !la.isSingleDelimiter(t.sem) && t.sem != ":=" && t.sem != "." && t.sem != "..")
+			mListControl.SetItemText(idx, 2, t.sem);
+	}
+}

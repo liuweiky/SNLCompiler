@@ -95,7 +95,8 @@ CString LexicalAnalyzer::getNextChar()
 
 void LexicalAnalyzer::ungetNextChar()
 {
-	mSrcPtr--;
+	if (mSrcPtr < mOrignalSrcCode.GetLength())
+		mSrcPtr--;
 }
 
 void LexicalAnalyzer::getTokenList()
@@ -103,7 +104,13 @@ void LexicalAnalyzer::getTokenList()
 	CString str = _T("");
 S0:
 	CString cur_char = getNextChar();
-	if (isAlpha(cur_char))
+	if (cur_char == "")
+	{
+		Token t(mCurLine, LexType::LEXEOF, str + cur_char);
+		mTokenList.push_back(t);
+		return;
+	}
+	else if (isAlpha(cur_char))
 	{
 		goto INID;
 	}
@@ -357,7 +364,7 @@ void LexicalAnalyzer::Lex2File()
 	}
 	outfile.Write((LPCTSTR)outstr.GetBuffer(outstr.GetLength()), outstr.GetLength() * sizeof(TCHAR));
 	outfile.Close();
-	AfxMessageBox(outstr);
+	//AfxMessageBox(outstr);
 }
 
 
