@@ -35,4 +35,5 @@ public:
 	CEdit mSrcEdit;
 	afx_msg void OnBnClickedTokenButton();
 	CListCtrl mListControl;
+	CListCtrl mSyntaxLogList;
 };

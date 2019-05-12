@@ -15,11 +15,26 @@ RSyntaxParser::RSyntaxParser()
 
 	mTokenPtr = 0;
 	mCurLine = mTokenList.size() == 0 ? 0 : mTokenList[0].line;
+	mSytaxTree = NULL;
+}
+
+RSyntaxParser::RSyntaxParser(vector<Token> tokens)
+{
+	for (int i = 0; i < tokens.size(); i++)
+	{
+		if (tokens[i].lex != LexType::LEXERR)
+			mTokenList.push_back(tokens[i]);
+	}
+
+	mTokenPtr = 0;
+	mCurLine = mTokenList.size() == 0 ? 0 : mTokenList[0].line;
+	mSytaxTree = NULL;
 }
 
 
 RSyntaxParser::~RSyntaxParser()
 {
+	ReleaseTree(mSytaxTree);
 }
 
 
@@ -34,7 +49,11 @@ void RSyntaxParser::NextToken()
 Token RSyntaxParser::GetCurToken()
 {
 	if (mTokenPtr == mTokenList.size())
-		return Token();
+	{
+		Token t;
+		t.line = mCurLine;
+		return t;
+	}
 	else
 		return mTokenList[mTokenPtr];
 }
@@ -45,12 +64,15 @@ Token RSyntaxParser::GetCurToken()
 // 否则，函数返回NULL。
 RTreeNode* RSyntaxParser::Parse()
 {
+	mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("Now begin parsing. Good luck!")));
 	LogUtil::Info(_T("Now begin parsing. Good luck!"));
 	RTreeNode* r = Program();
 	if (GetCurToken().lex != LexType::LEXEOF)
 	{
+		mParseLog.push_back(ParseLog(mCurLine, LogType::LERROR, _T("The code ends too early!")));
 		LogUtil::Error(_T("The code ends too early!"));
 	}
+	mSytaxTree = r;
 	return r;
 }
 
@@ -58,6 +80,7 @@ RTreeNode* RSyntaxParser::Parse()
 // Program ::= ProgramHead DeclarePart ProgramBody
 RTreeNode* RSyntaxParser::Program()
 {
+	mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("Parsing [Program]")));
 	LogUtil::Info(Utils::FormatCString(_T("Parsing Program in line %d"), mCurLine));
 	RTreeNode* prog = new RTreeNode();
 	prog->mNodeType = NodeType::Program;
@@ -73,16 +96,19 @@ RTreeNode* RSyntaxParser::Program()
 
 	if (ph == NULL)
 	{
+		mParseLog.push_back(ParseLog(mCurLine, LogType::LERROR, _T("Missing [ProgramHead]")));
 		LogUtil::Error(Utils::FormatCString(_T("Missing ProgramHead near line %d"), mCurLine));
 	}
 
 	if (dp == NULL)
 	{
+		mParseLog.push_back(ParseLog(mCurLine, LogType::LERROR, _T("Missing [DeclarePart]")));
 		LogUtil::Error(Utils::FormatCString(_T("Missing DeclarePart near line %d"), mCurLine));
 	}
 
 	if (pb == NULL)
 	{
+		mParseLog.push_back(ParseLog(mCurLine, LogType::LERROR, _T("Missing [ProgramBody]")));
 		LogUtil::Error(Utils::FormatCString(_T("Missing ProgramBody near line %d"), mCurLine));
 	}
 
@@ -92,7 +118,7 @@ RTreeNode* RSyntaxParser::Program()
 		s.Format(_T("Missing <DOT> in line %d"), mCurLine);*/
 		//LogUtil::Error(Utils::FormatCString(_T("Missing <DOT> near line %d"), mCurLine));
 	}
-
+	mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("[Program] Finished")));
 	return prog;
 }
 
@@ -100,6 +126,7 @@ RTreeNode* RSyntaxParser::Program()
 // ProgramHead ::= T-<PROGRAM> ProgramName
 RTreeNode* RSyntaxParser::ProgramHead()
 {
+	mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("Parsing [ProgramHead]")));
 	LogUtil::Info(Utils::FormatCString(_T("Parsing ProgramHead in line %d"), mCurLine));
 	RTreeNode* ph = new RTreeNode();
 	ph->mNodeType = NodeType::ProgramHead;
@@ -113,10 +140,12 @@ RTreeNode* RSyntaxParser::ProgramHead()
 	ph->mChilds.push_back(pn);
 	if (pn == NULL)
 	{
+		mParseLog.push_back(ParseLog(mCurLine, LogType::LERROR, _T("Missing [ProgramName]")));
 		LogUtil::Error(Utils::FormatCString(_T("Missing ProgramName near line %d"), mCurLine));
 	}
 
-	
+
+	mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("[ProgramHead] Finished")));
 
 	return ph;
 }
@@ -125,6 +154,7 @@ RTreeNode* RSyntaxParser::ProgramHead()
 // ProgramName ::= T-<IDENTIFIER>
 RTreeNode* RSyntaxParser::ProgramName()
 {
+	mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("Parsing [ProgramName]")));
 	LogUtil::Info(Utils::FormatCString(_T("Parsing ProgramName in line %d"), mCurLine));
 	RTreeNode* pn = new RTreeNode();
 	pn->mNodeType = NodeType::ProgramName;
@@ -144,6 +174,8 @@ RTreeNode* RSyntaxParser::ProgramName()
 	{
 		//LogUtil::Error(Utils::FormatCString(_T("Missing <IDENTIFIER> near line %d"), mCurLine));
 	}
+
+	mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("[ProgramName] Finished")));
 	return pn;
 }
 
@@ -152,6 +184,7 @@ RTreeNode* RSyntaxParser::DeclarePart()
 {
 	// 在 DeclarePart 中可以声明自定义类型（数组等）、变量、过程
 	// DeclarePart 本身只是一个标记
+	mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("Parsing [DeclarePart]")));
 	LogUtil::Info(Utils::FormatCString(_T("Parsing DeclarePart in line %d"), mCurLine));
 	RTreeNode* dp = new RTreeNode();
 	dp->mNodeType = NodeType::DeclarePart;
@@ -160,18 +193,29 @@ RTreeNode* RSyntaxParser::DeclarePart()
 	RTreeNode* td = TypeDec();
 	dp->mChilds.push_back(td);
 	if (td == NULL)
+	{
+		mParseLog.push_back(ParseLog(mCurLine, LogType::LERROR, _T("Missing [TypeDec]")));
 		LogUtil::Error(Utils::FormatCString(_T("Missing TypeDec near line %d"), mCurLine));
+	}
 
 	RTreeNode* vd = VarDec();
 	dp->mChilds.push_back(vd);
 	if (vd == NULL)
+	{
+		mParseLog.push_back(ParseLog(mCurLine, LogType::LERROR, _T("Missing [VarDec]")));
 		LogUtil::Error(Utils::FormatCString(_T("Missing VarDec near line %d"), mCurLine));
+	}
+		
 
 	RTreeNode* pd = ProcDec();
 	dp->mChilds.push_back(pd);
 	if (vd == NULL)
+	{
+		mParseLog.push_back(ParseLog(mCurLine, LogType::LERROR, _T("Missing [ProcDec]")));
 		LogUtil::Error(Utils::FormatCString(_T("Missing ProcDec near line %d"), mCurLine));
+	}
 
+	mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("[DeclarePart] Finished")));
 	return dp;
 }
 
@@ -181,6 +225,7 @@ RTreeNode* RSyntaxParser::DeclarePart()
 //				| ProcDeclaration { PROCEDURE }
 RTreeNode* RSyntaxParser::ProcDec()
 {
+	mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("Parsing [ProcDec]")));
 	LogUtil::Info(Utils::FormatCString(_T("Parsing ProcDec in line %d"), mCurLine));
 	RTreeNode* pd = new RTreeNode();
 	pd->mNodeType = NodeType::ProcDec;
@@ -193,23 +238,28 @@ RTreeNode* RSyntaxParser::ProcDec()
 		n->mNodeType = NodeType::EMPTY;	//空产生式
 		n->mLine = mCurLine;
 		pd->mChilds.push_back(n);
-		LogUtil::Info(Utils::FormatCString(_T("ProcDec is EPS near line %d"), mCurLine));
+		mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("[ProcDec] is EPSILON")));
+		LogUtil::Info(Utils::FormatCString(_T("ProcDec is EPSILON near line %d"), mCurLine));
 	}
 	else if (GetCurToken().lex == LexType::PROCEDURE)
 	{
 		pd->mChilds.push_back(ProcDeclaration());
 	}
 
+	mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("[ProcDec] Finished")));
 	return pd;
 }
 
+/* 书上算法26：少了 ProcDecMore */
 // ProcDeclaration ::= 
 //						T-<PROCEDURE>
 //						ProcName(ParamList)
 //						ProcDecPart
 //						ProcBody
+//						ProcDecMore
 RTreeNode* RSyntaxParser::ProcDeclaration()
 {
+	mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("Parsing [ProcDeclaration]")));
 	LogUtil::Info(Utils::FormatCString(_T("Parsing ProcDeclaration in line %d"), mCurLine));
 	RTreeNode* pd = new RTreeNode();
 	pd->mNodeType = NodeType::ProcDeclaration;
@@ -256,13 +306,52 @@ RTreeNode* RSyntaxParser::ProcDeclaration()
 	}
 	pd->mChilds.push_back(ProcDecPart());
 	pd->mChilds.push_back(ProcBody());
+	pd->mChilds.push_back(ProcDecMore());
+	mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("[ProcDeclaration] Finished")));
 	return pd;
 }
 
 
+/* 书上算法少了此条产生式 */
+// ProcDecMore ::=
+//					ε { BEGIN }
+//					| ProcDeclaration {PROCEDURE}
+RTreeNode* RSyntaxParser::ProcDecMore()
+{
+	mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("Parsing [ProcDecMore]")));
+	LogUtil::Info(Utils::FormatCString(_T("Parsing ProcDecMore in line %d"), mCurLine));
+	RTreeNode* pdm = new RTreeNode();
+	pdm->mNodeType = NodeType::ProcDecMore;
+	pdm->mLine = mCurLine;
+
+	if (GetCurToken().lex == LexType::BEGIN)
+	{
+		RTreeNode* n = new RTreeNode();
+		n->mNodeType = NodeType::EMPTY;	//空产生式
+		n->mLine = mCurLine;
+		pdm->mChilds.push_back(n);
+		mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("[ProcDecMore] is EPSILON")));
+		LogUtil::Info(Utils::FormatCString(_T("ProcDecMore is EPSILON near line %d"), mCurLine));
+	}
+	else if (GetCurToken().lex == LexType::PROCEDURE)
+	{
+		pdm->mChilds.push_back(ProcDeclaration());
+	}
+	else
+	{
+		mParseLog.push_back(ParseLog(mCurLine, LogType::LERROR, Utils::FormatCString(_T("Unexpected %s"), mLexicalAnalyzer.mLex2String[GetCurToken().lex])));
+		LogUtil::Error(Utils::FormatCString(_T("Unexpected %s near line %d"), mLexicalAnalyzer.mLex2String[GetCurToken().lex], mCurLine));
+		NextToken();
+	}
+
+	mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("[ProcDecMore] Finished")));
+	return pdm;
+}
+
 // ProcDecPart ::= DeclarePart
 RTreeNode* RSyntaxParser::ProcDecPart()
 {
+	mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("Parsing [ProcDecPart]")));
 	LogUtil::Info(Utils::FormatCString(_T("Parsing ProcDecPart in line %d"), mCurLine));
 	RTreeNode* pdp = new RTreeNode();
 	pdp->mNodeType = NodeType::ProcDecPart;
@@ -270,12 +359,14 @@ RTreeNode* RSyntaxParser::ProcDecPart()
 	
 	pdp->mChilds.push_back(DeclarePart());
 
+	mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("[ProcDecPart] Finished")));
 	return pdp;
 }
 
 // ProcBody ::= ProgramBody
 RTreeNode* RSyntaxParser::ProcBody()
 {
+	mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("Parsing [ProcBody]")));
 	LogUtil::Info(Utils::FormatCString(_T("Parsing ProcBody in line %d"), mCurLine));
 	RTreeNode* pb = new RTreeNode();
 	pb->mNodeType = NodeType::ProcBody;
@@ -283,6 +374,7 @@ RTreeNode* RSyntaxParser::ProcBody()
 
 	pb->mChilds.push_back(ProgramBody());
 
+	mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("[ProcBody] Finished")));
 	return pb;
 }
 
@@ -291,6 +383,7 @@ RTreeNode* RSyntaxParser::ProcBody()
 //				| ParamDecList { INTEGER, CHAR, ARRAY, RECORD, ID, VAR }
 RTreeNode* RSyntaxParser::ParamList()
 {
+	mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("Parsing [ParamList]")));
 	LogUtil::Info(Utils::FormatCString(_T("Parsing ParamList in line %d"), mCurLine));
 	RTreeNode* pl = new RTreeNode();
 	pl->mNodeType = NodeType::ParamList;
@@ -303,7 +396,8 @@ RTreeNode* RSyntaxParser::ParamList()
 		n->mNodeType = NodeType::EMPTY;	//空产生式
 		n->mLine = mCurLine;
 		pl->mChilds.push_back(n);
-		LogUtil::Info(Utils::FormatCString(_T("ParamList is EPS near line %d"), mCurLine));
+		mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("[ParamList] is EPSILON")));
+		LogUtil::Info(Utils::FormatCString(_T("ParamList is EPSILON near line %d"), mCurLine));
 	}
 	else if (
 		GetCurToken().lex == LexType::INTEGER || GetCurToken().lex == LexType::CHARACTER 
@@ -315,11 +409,12 @@ RTreeNode* RSyntaxParser::ParamList()
 	}
 	else
 	{
+		mParseLog.push_back(ParseLog(mCurLine, LogType::LERROR, Utils::FormatCString(_T("Unexpected %s"), mLexicalAnalyzer.mLex2String[GetCurToken().lex])));
 		LogUtil::Error(Utils::FormatCString(_T("Unexpected %s near line %d"), mLexicalAnalyzer.mLex2String[GetCurToken().lex], mCurLine));
 		NextToken();
 	}
 
-
+	mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("[ParamList] Finished")));
 	return pl;
 }
 
@@ -327,13 +422,15 @@ RTreeNode* RSyntaxParser::ParamList()
 // ParamDecList ::= Param ParamMore
 RTreeNode* RSyntaxParser::ParamDecList()
 {
+	mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("Parsing [ParamDecList]")));
 	LogUtil::Info(Utils::FormatCString(_T("Parsing ParamDecList in line %d"), mCurLine));
 	RTreeNode* vd = new RTreeNode();
 	vd->mNodeType = NodeType::ParamDecList;
 	vd->mLine = mCurLine;
 	vd->mChilds.push_back(Param());
 	vd->mChilds.push_back(ParamMore());
-	
+
+	mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("[ParamDecList] Finished")));
 	return vd;
 }
 
@@ -343,6 +440,7 @@ RTreeNode* RSyntaxParser::ParamDecList()
 //				| T-<SEMICOLON> ParamDecList { SEMICOLON }
 RTreeNode* RSyntaxParser::ParamMore()
 {
+	mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("Parsing [ParamMore]")));
 	LogUtil::Info(Utils::FormatCString(_T("Parsing ParamMore in line %d"), mCurLine));
 	RTreeNode* pm = new RTreeNode();
 	pm->mNodeType = NodeType::ParamMore;
@@ -354,7 +452,8 @@ RTreeNode* RSyntaxParser::ParamMore()
 		n->mNodeType = NodeType::EMPTY;	//空产生式
 		n->mLine = mCurLine;
 		pm->mChilds.push_back(n);
-		LogUtil::Info(Utils::FormatCString(_T("FidMore is EPS near line %d"), mCurLine));
+		mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("[ParamMore] is EPSILON")));
+		LogUtil::Info(Utils::FormatCString(_T("ParamMore is EPSILON near line %d"), mCurLine));
 	}
 	else if (GetCurToken().lex == LexType::SEMICOLON)	// 向前看 1 个
 	{
@@ -367,10 +466,12 @@ RTreeNode* RSyntaxParser::ParamMore()
 	}
 	else
 	{
+		mParseLog.push_back(ParseLog(mCurLine, LogType::LERROR, Utils::FormatCString(_T("Unexpected %s"), mLexicalAnalyzer.mLex2String[GetCurToken().lex])));
 		LogUtil::Error(Utils::FormatCString(_T("Unexpected %s near line %d"), mLexicalAnalyzer.mLex2String[GetCurToken().lex], mCurLine));
 		NextToken();
 	}
 
+	mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("[ParamMore] Finished")));
 	return pm;
 }
 
@@ -379,6 +480,7 @@ RTreeNode* RSyntaxParser::ParamMore()
 //			| T-<VAR> TypeDef FormList { VAR }
 RTreeNode* RSyntaxParser::Param()
 {
+	mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("Parsing [Param]")));
 	LogUtil::Info(Utils::FormatCString(_T("Parsing Param in line %d"), mCurLine));
 	RTreeNode* p = new RTreeNode();
 	p->mNodeType = NodeType::Param;
@@ -405,10 +507,12 @@ RTreeNode* RSyntaxParser::Param()
 	}
 	else
 	{
+		mParseLog.push_back(ParseLog(mCurLine, LogType::LERROR, Utils::FormatCString(_T("Unexpected %s"), mLexicalAnalyzer.mLex2String[GetCurToken().lex])));
 		LogUtil::Error(Utils::FormatCString(_T("Unexpected %s near line %d"), mLexicalAnalyzer.mLex2String[GetCurToken().lex], mCurLine));
 		NextToken();
 	}
 
+	mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("[Param] Finished")));
 	return p;
 }
 
@@ -416,6 +520,7 @@ RTreeNode* RSyntaxParser::Param()
 // FormList ::= T-<IDENTIFIER> FidMore
 RTreeNode* RSyntaxParser::FormList()
 {
+	mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("Parsing [FormList]")));
 	LogUtil::Info(Utils::FormatCString(_T("Parsing FormList in line %d"), mCurLine));
 	RTreeNode* fl = new RTreeNode();
 	fl->mNodeType = NodeType::FormList;
@@ -431,6 +536,7 @@ RTreeNode* RSyntaxParser::FormList()
 	}
 	fl->mChilds.push_back(FidMore());
 
+	mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("[FormList] Finished")));
 	return fl;
 }
 
@@ -440,6 +546,7 @@ RTreeNode* RSyntaxParser::FormList()
 //				| T-<COMMA> FormList { COMMA }
 RTreeNode* RSyntaxParser::FidMore()
 {
+	mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("Parsing [FidMore]")));
 	LogUtil::Info(Utils::FormatCString(_T("Parsing FidMore in line %d"), mCurLine));
 	RTreeNode* fm = new RTreeNode();
 	fm->mNodeType = NodeType::FidMore;
@@ -451,7 +558,8 @@ RTreeNode* RSyntaxParser::FidMore()
 		n->mNodeType = NodeType::EMPTY;	//空产生式
 		n->mLine = mCurLine;
 		fm->mChilds.push_back(n);
-		LogUtil::Info(Utils::FormatCString(_T("FidMore is EPS near line %d"), mCurLine));
+		mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("[FidMore] is EPSILON")));
+		LogUtil::Info(Utils::FormatCString(_T("FidMore is EPSILON near line %d"), mCurLine));
 	}
 	else if (GetCurToken().lex == LexType::COMMA)	// 向前看 1 个
 	{
@@ -464,10 +572,12 @@ RTreeNode* RSyntaxParser::FidMore()
 	}
 	else
 	{
+		mParseLog.push_back(ParseLog(mCurLine, LogType::LERROR, Utils::FormatCString(_T("Unexpected %s"), mLexicalAnalyzer.mLex2String[GetCurToken().lex])));
 		LogUtil::Error(Utils::FormatCString(_T("Unexpected %s near line %d"), mLexicalAnalyzer.mLex2String[GetCurToken().lex], mCurLine));
 		NextToken();
 	}
 
+	mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("[FidMore] Finished")));
 	return fm;
 }
 
@@ -476,6 +586,7 @@ RTreeNode* RSyntaxParser::FidMore()
 //				| VarDeclaration { VAR }
 RTreeNode* RSyntaxParser::VarDec()
 {
+	mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("Parsing [VarDec]")));
 	LogUtil::Info(Utils::FormatCString(_T("Parsing VarDec in line %d"), mCurLine));
 	RTreeNode* vd = new RTreeNode();
 	vd->mNodeType = NodeType::VarDec;
@@ -488,7 +599,8 @@ RTreeNode* RSyntaxParser::VarDec()
 		n->mNodeType = NodeType::EMPTY;	//空产生式
 		n->mLine = mCurLine;
 		vd->mChilds.push_back(n);
-		LogUtil::Info(Utils::FormatCString(_T("VarDec is EPS near line %d"), mCurLine));
+		mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("[VarDec] is EPSILON")));
+		LogUtil::Info(Utils::FormatCString(_T("VarDec is EPSILON near line %d"), mCurLine));
 	}
 	else if (GetCurToken().lex == LexType::VAR)
 	{
@@ -496,10 +608,12 @@ RTreeNode* RSyntaxParser::VarDec()
 	}
 	else
 	{
+		mParseLog.push_back(ParseLog(mCurLine, LogType::LERROR, Utils::FormatCString(_T("Unexpected %s"), mLexicalAnalyzer.mLex2String[GetCurToken().lex])));
 		LogUtil::Error(Utils::FormatCString(_T("Unexpected %s near line %d"), mLexicalAnalyzer.mLex2String[GetCurToken().lex], mCurLine));
 		NextToken();
 	}
 
+	mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("[VarDec] Finished")));
 	return vd;
 }
 
@@ -507,6 +621,7 @@ RTreeNode* RSyntaxParser::VarDec()
 // VarDeclaration ::= T-<VAR> VarDecList
 RTreeNode* RSyntaxParser::VarDeclaration()
 {
+	mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("Parsing [VarDeclaration]")));
 	LogUtil::Info(Utils::FormatCString(_T("Parsing VarDeclaration in line %d"), mCurLine));
 	RTreeNode* vd = new RTreeNode();
 	vd->mNodeType = NodeType::VarDeclaration;
@@ -525,16 +640,19 @@ RTreeNode* RSyntaxParser::VarDeclaration()
 	}
 	else
 	{
+		mParseLog.push_back(ParseLog(mCurLine, LogType::LERROR, Utils::FormatCString(_T("Unexpected %s"), mLexicalAnalyzer.mLex2String[GetCurToken().lex])));
 		LogUtil::Error(Utils::FormatCString(_T("Unexpected %s near line %d"), mLexicalAnalyzer.mLex2String[GetCurToken().lex], mCurLine));
 		NextToken();
 	}
 
+	mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("[VarDeclaration] Finished")));
 	return vd;
 }
 
 // VarDecList ::= TypeDef VarIdList T-<SEMICOLON> VarDecMore
 RTreeNode* RSyntaxParser::VarDecList()
 {
+	mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("Parsing [VarDecList]")));
 	LogUtil::Info(Utils::FormatCString(_T("Parsing VarDecList in line %d"), mCurLine));
 	RTreeNode* vdl = new RTreeNode();
 	vdl->mNodeType = NodeType::VarDecList;
@@ -552,10 +670,12 @@ RTreeNode* RSyntaxParser::VarDecList()
 	}
 	else
 	{
+		mParseLog.push_back(ParseLog(mCurLine, LogType::LERROR, Utils::FormatCString(_T("Unexpected %s"), mLexicalAnalyzer.mLex2String[GetCurToken().lex])));
 		LogUtil::Error(Utils::FormatCString(_T("Unexpected %s near line %d"), mLexicalAnalyzer.mLex2String[GetCurToken().lex], mCurLine));
 		NextToken();
 	}
 
+	mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("[VarDecList] Finished")));
 	return vdl;
 }
 
@@ -564,6 +684,7 @@ RTreeNode* RSyntaxParser::VarDecList()
 //				| T-<COMMA> VarIdList { COMMA }
 RTreeNode* RSyntaxParser::VarIdMore()
 {
+	mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("Parsing [VarIdMore]")));
 	LogUtil::Info(Utils::FormatCString(_T("Parsing VarIdMore in line %d"), mCurLine));
 	RTreeNode* vim = new RTreeNode();
 	vim->mNodeType = NodeType::VarIdMore;
@@ -575,7 +696,8 @@ RTreeNode* RSyntaxParser::VarIdMore()
 		n->mNodeType = NodeType::EMPTY;	//空产生式
 		n->mLine = mCurLine;
 		vim->mChilds.push_back(n);
-		LogUtil::Info(Utils::FormatCString(_T("VarIdMore is EPS near line %d"), mCurLine));
+		mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("[VarIdMore] is EPSILON")));
+		LogUtil::Info(Utils::FormatCString(_T("VarIdMore is EPSILON near line %d"), mCurLine));
 	}
 	else if (GetCurToken().lex == LexType::COMMA)
 	{
@@ -589,10 +711,12 @@ RTreeNode* RSyntaxParser::VarIdMore()
 	}
 	else
 	{
+		mParseLog.push_back(ParseLog(mCurLine, LogType::LERROR, Utils::FormatCString(_T("Unexpected %s"), mLexicalAnalyzer.mLex2String[GetCurToken().lex])));
 		LogUtil::Error(Utils::FormatCString(_T("Unexpected %s near line %d"), mLexicalAnalyzer.mLex2String[GetCurToken().lex], mCurLine));
 		NextToken();
 	}
 
+	mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("[VarIdMore] Finished")));
 	return vim;
 }
 
@@ -600,6 +724,7 @@ RTreeNode* RSyntaxParser::VarIdMore()
 // VarIdList ::= T-<IDENTIFIER> VarIdMore
 RTreeNode* RSyntaxParser::VarIdList()
 {
+	mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("Parsing [VarIdList]")));
 	LogUtil::Info(Utils::FormatCString(_T("Parsing VarIdList in line %d"), mCurLine));
 	RTreeNode* vil = new RTreeNode();
 	vil->mNodeType = NodeType::VarIdList;
@@ -614,6 +739,7 @@ RTreeNode* RSyntaxParser::VarIdList()
 
 	vil->mChilds.push_back(VarIdMore());
 
+	mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("[VarIdList] Finished")));
 	return vil;
 }
 
@@ -622,6 +748,7 @@ RTreeNode* RSyntaxParser::VarIdList()
 //				| VarDecList { INTEGER, CHARACTER, RECORD, ARRAY, IDENTIFIER }
 RTreeNode* RSyntaxParser::VarDecMore()
 {
+	mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("Parsing [VarDecMore]")));
 	LogUtil::Info(Utils::FormatCString(_T("Parsing VarDecMore in line %d"), mCurLine));
 	RTreeNode* vdm = new RTreeNode();
 	vdm->mNodeType = NodeType::VarDecMore;
@@ -633,7 +760,8 @@ RTreeNode* RSyntaxParser::VarDecMore()
 		n->mNodeType = NodeType::EMPTY;	//空产生式
 		n->mLine = mCurLine;
 		vdm->mChilds.push_back(n);
-		LogUtil::Info(Utils::FormatCString(_T("VarDecMore is EPS near line %d"), mCurLine));
+		mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("[VarDecMore] is EPSILON")));
+		LogUtil::Info(Utils::FormatCString(_T("VarDecMore is EPSILON near line %d"), mCurLine));
 	}
 	else if (
 		GetCurToken().lex == LexType::INTEGER || GetCurToken().lex == LexType::CHARACTER 
@@ -644,10 +772,12 @@ RTreeNode* RSyntaxParser::VarDecMore()
 	}
 	else
 	{
+		mParseLog.push_back(ParseLog(mCurLine, LogType::LERROR, Utils::FormatCString(_T("Unexpected %s"), mLexicalAnalyzer.mLex2String[GetCurToken().lex])));
 		LogUtil::Error(Utils::FormatCString(_T("Unexpected %s near line %d"), mLexicalAnalyzer.mLex2String[GetCurToken().lex], mCurLine));
 		NextToken();
 	}
 
+	mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("[VarDecMore] Finished")));
 	return vdm;
 }
 
@@ -657,6 +787,7 @@ RTreeNode* RSyntaxParser::VarDecMore()
 //			| TypeDeclaration Expected { TYPE }
 RTreeNode* RSyntaxParser::TypeDec()
 {
+	mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("Parsing [TypeDec]")));
 	LogUtil::Info(Utils::FormatCString(_T("Parsing TypeDec in line %d"), mCurLine));
 	RTreeNode* td = new RTreeNode();
 	td->mNodeType = NodeType::TypeDec;
@@ -672,14 +803,17 @@ RTreeNode* RSyntaxParser::TypeDec()
 		n->mNodeType = NodeType::EMPTY;	//空产生式
 		n->mLine = mCurLine;
 		td->mChilds.push_back(n);
-		LogUtil::Info(Utils::FormatCString(_T("TypeDec is EPS near line %d"), mCurLine));
+		mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("[TypeDec] is EPSILON")));
+		LogUtil::Info(Utils::FormatCString(_T("TypeDec is EPSILON near line %d"), mCurLine));
 	}
 	else
 	{
+		mParseLog.push_back(ParseLog(mCurLine, LogType::LERROR, Utils::FormatCString(_T("Unexpected %s"), mLexicalAnalyzer.mLex2String[GetCurToken().lex])));
 		LogUtil::Error(Utils::FormatCString(_T("Unexpected %s near line %d"), mLexicalAnalyzer.mLex2String[GetCurToken().lex], mCurLine));
 		NextToken();
 	}
 
+	mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("[TypeDec] Finished")));
 	return td;
 }
 
@@ -687,6 +821,7 @@ RTreeNode* RSyntaxParser::TypeDec()
 // TypeDeclaration ::= T-<TYPE> TypeDecList
 RTreeNode* RSyntaxParser::TypeDeclaration()
 {
+	mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("Parsing [TypeDeclaration]")));
 	LogUtil::Info(Utils::FormatCString(_T("Parsing TypeDeclaration in line %d"), mCurLine));
 	RTreeNode* td = new RTreeNode();
 	td->mNodeType = NodeType::TypeDec;
@@ -709,6 +844,7 @@ RTreeNode* RSyntaxParser::TypeDeclaration()
 		//LogUtil::Error(Utils::FormatCString(_T("Missing <TYPE> near line %d"), mCurLine));
 	}
 
+	mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("[TypeDeclaration] Finished")));
 	return td;
 }
 
@@ -717,6 +853,7 @@ RTreeNode* RSyntaxParser::TypeDeclaration()
 // TypeDecList ::= TypeId T-<EQU> TypeDef T-<SEMICOLON> TypeDecMore
 RTreeNode* RSyntaxParser::TypeDecList()
 {
+	mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("Parsing [TypeDecList]")));
 	LogUtil::Info(Utils::FormatCString(_T("Parsing TypeDecList in line %d"), mCurLine));
 	RTreeNode* tdl = new RTreeNode();
 	tdl->mNodeType = NodeType::TypeDecList;
@@ -757,6 +894,7 @@ RTreeNode* RSyntaxParser::TypeDecList()
 		LogUtil::Error(Utils::FormatCString(_T("Missing TypeDecMore near line %d"), mCurLine));
 	}
 
+	mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("[TypeDecList] Finished")));
 	return tdl;
 }
 
@@ -764,6 +902,7 @@ RTreeNode* RSyntaxParser::TypeDecList()
 // TypeId :: = T-<IDENTIFIER>
 RTreeNode* RSyntaxParser::TypeId()
 {
+	mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("Parsing [TypeId]")));
 	LogUtil::Info(Utils::FormatCString(_T("Parsing TypeId in line %d"), mCurLine));
 	RTreeNode* ti = new RTreeNode();
 	ti->mNodeType = NodeType::TypeId;
@@ -774,6 +913,7 @@ RTreeNode* RSyntaxParser::TypeId()
 	{
 		ti->mChilds.push_back(GetMatchedTerminal(t));
 	}
+	mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("[TypeId] Finished")));
 	return ti;
 }
 
@@ -784,6 +924,7 @@ RTreeNode* RSyntaxParser::TypeId()
 //			| T-<IDENTIFIER> { IDENTIFIER }
 RTreeNode* RSyntaxParser::TypeDef()
 {
+	mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("Parsing [TypeDef]")));
 	LogUtil::Info(Utils::FormatCString(_T("Parsing TypeDef in line %d"), mCurLine));
 	RTreeNode* tdf = new RTreeNode();
 	tdf->mNodeType = NodeType::TypeDef;
@@ -808,10 +949,12 @@ RTreeNode* RSyntaxParser::TypeDef()
 	}
 	else
 	{
+		mParseLog.push_back(ParseLog(mCurLine, LogType::LERROR, Utils::FormatCString(_T("Unexpected %s"), mLexicalAnalyzer.mLex2String[GetCurToken().lex])));
 		LogUtil::Error(Utils::FormatCString(_T("Unexpected %s near line %d"), mLexicalAnalyzer.mLex2String[GetCurToken().lex], mCurLine));
 		NextToken();
 	}
 
+	mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("[TypeDef] Finished")));
 	return tdf;
 }
 
@@ -821,6 +964,7 @@ RTreeNode* RSyntaxParser::TypeDef()
 //				| T-<CHAR> { CHARACTER }
 RTreeNode* RSyntaxParser::BaseType()
 {
+	mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("Parsing [BaseType]")));
 	LogUtil::Info(Utils::FormatCString(_T("Parsing BaseType in line %d"), mCurLine));
 	RTreeNode* bt = new RTreeNode();
 	bt->mNodeType = NodeType::BaseType;
@@ -846,10 +990,12 @@ RTreeNode* RSyntaxParser::BaseType()
 	}
 	else
 	{
+		mParseLog.push_back(ParseLog(mCurLine, LogType::LERROR, Utils::FormatCString(_T("Unexpected %s"), mLexicalAnalyzer.mLex2String[GetCurToken().lex])));
 		LogUtil::Error(Utils::FormatCString(_T("Unexpected %s near line %d"), mLexicalAnalyzer.mLex2String[GetCurToken().lex], mCurLine));
 		NextToken();
 	}
 
+	mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("[BaseType] Finished")));
 	return bt;
 }
 
@@ -859,6 +1005,7 @@ RTreeNode* RSyntaxParser::BaseType()
 //					| RecType { RECORD }
 RTreeNode* RSyntaxParser::StructureType()
 {
+	mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("Parsing [StructureType]")));
 	LogUtil::Info(Utils::FormatCString(_T("Parsing StructureType in line %d"), mCurLine));
 	RTreeNode* st = new RTreeNode();
 	st->mNodeType = NodeType::StructureType;
@@ -874,10 +1021,12 @@ RTreeNode* RSyntaxParser::StructureType()
 	}
 	else
 	{
+		mParseLog.push_back(ParseLog(mCurLine, LogType::LERROR, Utils::FormatCString(_T("Unexpected %s"), mLexicalAnalyzer.mLex2String[GetCurToken().lex])));
 		LogUtil::Error(Utils::FormatCString(_T("Unexpected %s near line %d"), mLexicalAnalyzer.mLex2String[GetCurToken().lex], mCurLine));
 		NextToken();
 	}
 
+	mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("[StructureType] Finished")));
 	return st;
 }
 
@@ -885,6 +1034,7 @@ RTreeNode* RSyntaxParser::StructureType()
 // ArrayType ::= T-<ARRAY> T-<[low..top]> T-<OF> BaseType
 RTreeNode* RSyntaxParser::ArrayType()
 {
+	mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("Parsing [ArrayType]")));
 	LogUtil::Info(Utils::FormatCString(_T("Parsing ArrayType in line %d"), mCurLine));
 	RTreeNode* at = new RTreeNode();
 	at->mNodeType = NodeType::ArrayType;
@@ -942,6 +1092,7 @@ RTreeNode* RSyntaxParser::ArrayType()
 
 	at->mChilds.push_back(BaseType());
 
+	mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("[ArrayType] Finished")));
 	return at;
 }
 
@@ -949,6 +1100,7 @@ RTreeNode* RSyntaxParser::ArrayType()
 // RecType ::= T-<RECORD> FieldDecList T-<END>
 RTreeNode* RSyntaxParser::RecType()
 {
+	mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("Parsing [RecType]")));
 	LogUtil::Info(Utils::FormatCString(_T("Parsing RecType in line %d"), mCurLine));
 	RTreeNode* rt = new RTreeNode();
 	rt->mNodeType = NodeType::RecType;
@@ -970,6 +1122,7 @@ RTreeNode* RSyntaxParser::RecType()
 		rt->mChilds.push_back(GetMatchedTerminal(t));
 	}
 
+	mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("[RecType] Finished")));
 	return rt;
 }
 
@@ -979,6 +1132,7 @@ RTreeNode* RSyntaxParser::RecType()
 //				| ArrayType IdList T-<SEMICOLON> FieldDecMore { ARRAY }
 RTreeNode* RSyntaxParser::FieldDecList()
 {
+	mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("Parsing [FieldDecList]")));
 	LogUtil::Info(Utils::FormatCString(_T("Parsing FieldDecList in line %d"), mCurLine));
 	RTreeNode* fd = new RTreeNode();
 	fd->mNodeType = NodeType::FieldDecList;
@@ -1014,10 +1168,12 @@ RTreeNode* RSyntaxParser::FieldDecList()
 	}
 	else
 	{
+		mParseLog.push_back(ParseLog(mCurLine, LogType::LERROR, Utils::FormatCString(_T("Unexpected %s"), mLexicalAnalyzer.mLex2String[GetCurToken().lex])));
 		LogUtil::Error(Utils::FormatCString(_T("Unexpected %s near line %d"), mLexicalAnalyzer.mLex2String[GetCurToken().lex], mCurLine));
 		NextToken();
 	}
 
+	mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("[FieldDecList] Finished")));
 	return fd;
 }
 
@@ -1025,6 +1181,7 @@ RTreeNode* RSyntaxParser::FieldDecList()
 // IdList ::= T-<IDENTIFIER> IdMore
 RTreeNode* RSyntaxParser::IdList()
 {
+	mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("Parsing [IdList]")));
 	LogUtil::Info(Utils::FormatCString(_T("Parsing IdList in line %d"), mCurLine));
 	RTreeNode* idl = new RTreeNode();
 	idl->mNodeType = NodeType::IdList;
@@ -1039,6 +1196,7 @@ RTreeNode* RSyntaxParser::IdList()
 
 	idl->mChilds.push_back(IdMore());
 
+	mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("[IdList] Finished")));
 	return idl;
 }
 
@@ -1048,6 +1206,7 @@ RTreeNode* RSyntaxParser::IdList()
 //			| T-<COMMA> IdList { COMMA }
 RTreeNode* RSyntaxParser::IdMore()
 {
+	mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("Parsing [IdMore]")));
 	LogUtil::Info(Utils::FormatCString(_T("Parsing IdMore in line %d"), mCurLine));
 	RTreeNode* idm = new RTreeNode();
 	idm->mNodeType = NodeType::IdMore;
@@ -1059,7 +1218,8 @@ RTreeNode* RSyntaxParser::IdMore()
 		n->mNodeType = NodeType::EMPTY;	//空产生式
 		n->mLine = mCurLine;
 		idm->mChilds.push_back(n);
-		LogUtil::Info(Utils::FormatCString(_T("IdMore is EPS near line %d"), mCurLine));
+		mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("[IdMore] is EPSILON")));
+		LogUtil::Info(Utils::FormatCString(_T("IdMore is EPSILON near line %d"), mCurLine));
 	}
 	else if (GetCurToken().lex == LexType::COMMA)
 	{
@@ -1067,10 +1227,12 @@ RTreeNode* RSyntaxParser::IdMore()
 	}
 	else
 	{
+		mParseLog.push_back(ParseLog(mCurLine, LogType::LERROR, Utils::FormatCString(_T("Unexpected %s"), mLexicalAnalyzer.mLex2String[GetCurToken().lex])));
 		LogUtil::Error(Utils::FormatCString(_T("Unexpected %s near line %d"), mLexicalAnalyzer.mLex2String[GetCurToken().lex], mCurLine));
 		NextToken();
 	}
 
+	mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("[IdMore] Finished")));
 	return idm;
 }
 
@@ -1080,6 +1242,7 @@ RTreeNode* RSyntaxParser::IdMore()
 //					| FieldDecList { INTEGER, CHARACTER, ARRAY }
 RTreeNode* RSyntaxParser::FieldDecMore()
 {
+	mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("Parsing [FieldDecMore]")));
 	LogUtil::Info(Utils::FormatCString(_T("Parsing FieldDecMore in line %d"), mCurLine));
 	RTreeNode* fdm = new RTreeNode();
 	fdm->mNodeType = NodeType::FieldDecMore;
@@ -1091,7 +1254,8 @@ RTreeNode* RSyntaxParser::FieldDecMore()
 		n->mNodeType = NodeType::EMPTY;	//空产生式
 		n->mLine = mCurLine;
 		fdm->mChilds.push_back(n);
-		LogUtil::Info(Utils::FormatCString(_T("FieldDecMore is EPS near line %d"), mCurLine));
+		mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("[FieldDecMore] is EPSILON")));
+		LogUtil::Info(Utils::FormatCString(_T("FieldDecMore is EPSILON near line %d"), mCurLine));
 	}
 	else if (GetCurToken().lex == LexType::INTEGER || GetCurToken().lex == LexType::CHARACTER || GetCurToken().lex == LexType::ARRAY)
 	{
@@ -1099,11 +1263,12 @@ RTreeNode* RSyntaxParser::FieldDecMore()
 	}
 	else
 	{
+		mParseLog.push_back(ParseLog(mCurLine, LogType::LERROR, Utils::FormatCString(_T("Unexpected %s"), mLexicalAnalyzer.mLex2String[GetCurToken().lex])));
 		LogUtil::Error(Utils::FormatCString(_T("Unexpected %s near line %d"), mLexicalAnalyzer.mLex2String[GetCurToken().lex], mCurLine));
 		NextToken();
 	}
 
-
+	mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("[FieldDecMore] Finished")));
 	return fdm;
 }
 
@@ -1114,6 +1279,7 @@ RTreeNode* RSyntaxParser::FieldDecMore()
 //					| TypeDecList { IDENTIFIER }
 RTreeNode* RSyntaxParser::TypeDecMore()
 {
+	mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("Parsing [TypeDecMore]")));
 	LogUtil::Info(Utils::FormatCString(_T("Parsing TypeDecMore in line %d"), mCurLine));
 	RTreeNode* tdm = new RTreeNode();
 	tdm->mNodeType = NodeType::TypeDecMore;
@@ -1125,7 +1291,8 @@ RTreeNode* RSyntaxParser::TypeDecMore()
 		n->mNodeType = NodeType::EMPTY;	//空产生式
 		n->mLine = mCurLine;
 		tdm->mChilds.push_back(n);
-		LogUtil::Info(Utils::FormatCString(_T("TypeDecMore is EPS near line %d"), mCurLine));
+		mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("[TypeDecMore] is EPSILON")));
+		LogUtil::Info(Utils::FormatCString(_T("TypeDecMore is EPSILON near line %d"), mCurLine));
 	}
 	else if (GetCurToken().lex == LexType::IDENTIFIER)
 	{
@@ -1133,10 +1300,12 @@ RTreeNode* RSyntaxParser::TypeDecMore()
 	}
 	else
 	{
+		mParseLog.push_back(ParseLog(mCurLine, LogType::LERROR, Utils::FormatCString(_T("Unexpected %s"), mLexicalAnalyzer.mLex2String[GetCurToken().lex])));
 		LogUtil::Error(Utils::FormatCString(_T("Unexpected %s near line %d"), mLexicalAnalyzer.mLex2String[GetCurToken().lex], mCurLine));
 		NextToken();
 	}
 
+	mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("[TypeDecMore] Finished")));
 	return tdm;
 }
 
@@ -1144,6 +1313,7 @@ RTreeNode* RSyntaxParser::TypeDecMore()
 // StmList ::= Stm StmMore
 RTreeNode* RSyntaxParser::StmList()
 {
+	mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("Parsing [StmList]")));
 	LogUtil::Info(Utils::FormatCString(_T("Parsing StmList in line %d"), mCurLine));
 	RTreeNode* sl = new RTreeNode();
 	sl->mNodeType = NodeType::StmList;
@@ -1152,6 +1322,7 @@ RTreeNode* RSyntaxParser::StmList()
 	sl->mChilds.push_back(Stm());
 	sl->mChilds.push_back(StmMore());
 
+	mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("[StmList] Finished")));
 	return sl;
 }
 
@@ -1162,6 +1333,7 @@ RTreeNode* RSyntaxParser::StmList()
 //				| T-<SEMICOLON> StmList { SEMICOLON }
 RTreeNode* RSyntaxParser::StmMore()
 {
+	mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("Parsing [StmMore]")));
 	LogUtil::Info(Utils::FormatCString(_T("Parsing StmMore in line %d"), mCurLine));
 	RTreeNode* sm = new RTreeNode();
 	sm->mNodeType = NodeType::StmMore;
@@ -1175,7 +1347,8 @@ RTreeNode* RSyntaxParser::StmMore()
 		n->mNodeType = NodeType::EMPTY;	//空产生式
 		n->mLine = mCurLine;
 		sm->mChilds.push_back(n);
-		LogUtil::Info(Utils::FormatCString(_T("StmMore is EPS near line %d"), mCurLine));
+		mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("[StmMore] is EPSILON")));
+		LogUtil::Info(Utils::FormatCString(_T("StmMore is EPSILON near line %d"), mCurLine));
 	}
 	else if (GetCurToken().lex == LexType::SEMICOLON)
 	{
@@ -1189,11 +1362,12 @@ RTreeNode* RSyntaxParser::StmMore()
 	}
 	else
 	{
+		mParseLog.push_back(ParseLog(mCurLine, LogType::LERROR, Utils::FormatCString(_T("Unexpected %s"), mLexicalAnalyzer.mLex2String[GetCurToken().lex])));
 		LogUtil::Error(Utils::FormatCString(_T("Unexpected %s near line %d"), mLexicalAnalyzer.mLex2String[GetCurToken().lex], mCurLine));
 		NextToken();
 	}
 
-
+	mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("[StmMore] Finished")));
 	return sm;
 }
 
@@ -1206,6 +1380,7 @@ RTreeNode* RSyntaxParser::StmMore()
 //			| T-<IDENTIFIER> AssCall { IDENTIFIER }
 RTreeNode* RSyntaxParser::Stm()
 {
+	mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("Parsing [Stm]")));
 	LogUtil::Info(Utils::FormatCString(_T("Parsing Stm in line %d"), mCurLine));
 	RTreeNode* s = new RTreeNode();
 	s->mNodeType = NodeType::Stm;
@@ -1243,10 +1418,12 @@ RTreeNode* RSyntaxParser::Stm()
 	}
 	else
 	{
+		mParseLog.push_back(ParseLog(mCurLine, LogType::LERROR, Utils::FormatCString(_T("Unexpected %s"), mLexicalAnalyzer.mLex2String[GetCurToken().lex])));
 		LogUtil::Error(Utils::FormatCString(_T("Unexpected %s near line %d"), mLexicalAnalyzer.mLex2String[GetCurToken().lex], mCurLine));
 		NextToken();
 	}
 
+	mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("[Stm] Finished")));
 	return s;
 }
 
@@ -1257,6 +1434,7 @@ RTreeNode* RSyntaxParser::Stm()
 //				| CallStmRest { LPARENTHESIS }
 RTreeNode* RSyntaxParser::AssCall()
 {
+	mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("Parsing [AssCall]")));
 	LogUtil::Info(Utils::FormatCString(_T("Parsing AssCall in line %d"), mCurLine));
 	RTreeNode* ac = new RTreeNode();
 	ac->mNodeType = NodeType::AssCall;
@@ -1272,10 +1450,12 @@ RTreeNode* RSyntaxParser::AssCall()
 	}
 	else
 	{
+		mParseLog.push_back(ParseLog(mCurLine, LogType::LERROR, Utils::FormatCString(_T("Unexpected %s"), mLexicalAnalyzer.mLex2String[GetCurToken().lex])));
 		LogUtil::Error(Utils::FormatCString(_T("Unexpected %s near line %d"), mLexicalAnalyzer.mLex2String[GetCurToken().lex], mCurLine));
 		NextToken();
 	}
 
+	mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("[AssCall] Finished")));
 	return ac;
 }
 
@@ -1284,6 +1464,7 @@ RTreeNode* RSyntaxParser::AssCall()
 // AssignmentRest ::= VariMore T-<ASSIGN> Exp
 RTreeNode* RSyntaxParser::AssignmentRest()
 {
+	mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("Parsing [AssignmentRest]")));
 	LogUtil::Info(Utils::FormatCString(_T("Parsing AssignmentRest in line %d"), mCurLine));
 	RTreeNode* ar = new RTreeNode();
 	ar->mNodeType = NodeType::AssignmentRest;
@@ -1299,6 +1480,7 @@ RTreeNode* RSyntaxParser::AssignmentRest()
 	}
 	ar->mChilds.push_back(Exp());
 
+	mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("[AssignmentRest] Finished")));
 	return ar;
 }
 
@@ -1307,6 +1489,7 @@ RTreeNode* RSyntaxParser::AssignmentRest()
 // ConditionalStm :: = T-<IF> RelExp T-<THEN> StmList T-<ELSE> StmList T-<FI>
 RTreeNode* RSyntaxParser::ConditionalStm()
 {
+	mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("Parsing [ConditionalStm]")));
 	LogUtil::Info(Utils::FormatCString(_T("Parsing ConditionalStm in line %d"), mCurLine));
 	RTreeNode* cs = new RTreeNode();
 	cs->mNodeType = NodeType::ConditionalStm;
@@ -1346,6 +1529,7 @@ RTreeNode* RSyntaxParser::ConditionalStm()
 		cs->mChilds.push_back(GetMatchedTerminal(t));
 	}
 
+	mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("[ConditionalStm] Finished")));
 	return cs;
 }
 
@@ -1354,6 +1538,7 @@ RTreeNode* RSyntaxParser::ConditionalStm()
 // LoopStm :: = T-<WHILE> RelExp T-<DO> StmList T-<ENDWHILE>
 RTreeNode* RSyntaxParser::LoopStm()
 {
+	mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("Parsing [LoopStm]")));
 	LogUtil::Info(Utils::FormatCString(_T("Parsing LoopStm in line %d"), mCurLine));
 	RTreeNode* ls = new RTreeNode();
 	ls->mNodeType = NodeType::LoopStm;
@@ -1384,12 +1569,14 @@ RTreeNode* RSyntaxParser::LoopStm()
 		ls->mChilds.push_back(GetMatchedTerminal(t));
 	}
 
+	mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("[LoopStm] Finished")));
 	return ls;
 }
 
 // InputStm ::= T-<READ> T-<LPARENTHESIS> T-<IDENTIFIER> T-<RPARENTHESIS>
 RTreeNode* RSyntaxParser::InputStm()
 {
+	mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("Parsing [InputStm]")));
 	LogUtil::Info(Utils::FormatCString(_T("Parsing InputStm in line %d"), mCurLine));
 	RTreeNode* is = new RTreeNode();
 	is->mNodeType = NodeType::InputStm;
@@ -1423,6 +1610,7 @@ RTreeNode* RSyntaxParser::InputStm()
 		is->mChilds.push_back(GetMatchedTerminal(t));
 	}
 
+	mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("[InputStm] Finished")));
 	return is;
 }
 
@@ -1430,6 +1618,7 @@ RTreeNode* RSyntaxParser::InputStm()
 // OutputStm ::= T-<WRITE> T-<LPARENTHESIS> Exp T-<RPARENTHESIS>
 RTreeNode* RSyntaxParser::OutputStm()
 {
+	mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("Parsing [OutputStm]")));
 	LogUtil::Info(Utils::FormatCString(_T("Parsing OutputStm in line %d"), mCurLine));
 	RTreeNode* os = new RTreeNode();
 	os->mNodeType = NodeType::OutputStm;
@@ -1458,6 +1647,7 @@ RTreeNode* RSyntaxParser::OutputStm()
 		os->mChilds.push_back(GetMatchedTerminal(t));
 	}
 
+	mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("[OutputStm] Finished")));
 	return os;
 }
 
@@ -1465,6 +1655,7 @@ RTreeNode* RSyntaxParser::OutputStm()
 // ReturnStm ::= T-<RETURN>
 RTreeNode* RSyntaxParser::ReturnStm()
 {
+	mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("Parsing [ReturnStm]")));
 	LogUtil::Info(Utils::FormatCString(_T("Parsing ReturnStm in line %d"), mCurLine));
 	RTreeNode* rs = new RTreeNode();
 	rs->mNodeType = NodeType::ReturnStm;
@@ -1477,6 +1668,7 @@ RTreeNode* RSyntaxParser::ReturnStm()
 		rs->mChilds.push_back(GetMatchedTerminal(t));
 	}
 
+	mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("[ReturnStm] Finished")));
 	return rs;
 }
 
@@ -1484,6 +1676,7 @@ RTreeNode* RSyntaxParser::ReturnStm()
 // CallStmRest ::= T-<LPARENTHESIS> ActParamList T-<RPARENTHESIS>
 RTreeNode* RSyntaxParser::CallStmRest()
 {
+	mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("Parsing [CallStmRest]")));
 	LogUtil::Info(Utils::FormatCString(_T("Parsing CallStmRest in line %d"), mCurLine));
 	RTreeNode* cs = new RTreeNode();
 	cs->mNodeType = NodeType::CallStmRest;
@@ -1505,6 +1698,7 @@ RTreeNode* RSyntaxParser::CallStmRest()
 		cs->mChilds.push_back(GetMatchedTerminal(t));
 	}
 
+	mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("[CallStmRest] Finished")));
 	return cs;
 }
 
@@ -1514,6 +1708,7 @@ RTreeNode* RSyntaxParser::CallStmRest()
 //				| Exp ActParamMore { IDENTIFIER, UINTEGER }
 RTreeNode* RSyntaxParser::ActParamList()
 {
+	mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("Parsing [ActParamList]")));
 	LogUtil::Info(Utils::FormatCString(_T("Parsing ActParamList in line %d"), mCurLine));
 	RTreeNode* apl = new RTreeNode();
 	apl->mNodeType = NodeType::ActParamList;
@@ -1525,7 +1720,8 @@ RTreeNode* RSyntaxParser::ActParamList()
 		n->mNodeType = NodeType::EMPTY;	//空产生式
 		n->mLine = mCurLine;
 		apl->mChilds.push_back(n);
-		LogUtil::Info(Utils::FormatCString(_T("ActParamList is EPS near line %d"), mCurLine));
+		mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("[ActParamList] is EPSILON")));
+		LogUtil::Info(Utils::FormatCString(_T("ActParamList is EPSILON near line %d"), mCurLine));
 	}
 	else if (GetCurToken().lex == LexType::IDENTIFIER || GetCurToken().lex == LexType::UINTEGER)
 	{
@@ -1534,10 +1730,12 @@ RTreeNode* RSyntaxParser::ActParamList()
 	}
 	else
 	{
+		mParseLog.push_back(ParseLog(mCurLine, LogType::LERROR, Utils::FormatCString(_T("Unexpected %s"), mLexicalAnalyzer.mLex2String[GetCurToken().lex])));
 		LogUtil::Error(Utils::FormatCString(_T("Unexpected %s near line %d"), mLexicalAnalyzer.mLex2String[GetCurToken().lex], mCurLine));
 		NextToken();
 	}
 
+	mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("[ActParamList] Finished")));
 	return apl;
 }
 
@@ -1547,6 +1745,7 @@ RTreeNode* RSyntaxParser::ActParamList()
 //				| T-<COMMA> ActParamList { COMMA }
 RTreeNode* RSyntaxParser::ActParamMore()
 {
+	mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("Parsing [ActParamMore]")));
 	LogUtil::Info(Utils::FormatCString(_T("Parsing ActParamMore in line %d"), mCurLine));
 	RTreeNode* apm = new RTreeNode();
 	apm->mNodeType = NodeType::ActParamMore;
@@ -1558,7 +1757,8 @@ RTreeNode* RSyntaxParser::ActParamMore()
 		n->mNodeType = NodeType::EMPTY;	//空产生式
 		n->mLine = mCurLine;
 		apm->mChilds.push_back(n);
-		LogUtil::Info(Utils::FormatCString(_T("ActParamMore is EPS near line %d"), mCurLine));
+		mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("[ActParamMore] is EPSILON")));
+		LogUtil::Info(Utils::FormatCString(_T("ActParamMore is EPSILON near line %d"), mCurLine));
 	}
 	else if (GetCurToken().lex == LexType::COMMA)
 	{
@@ -1572,10 +1772,12 @@ RTreeNode* RSyntaxParser::ActParamMore()
 	}
 	else
 	{
+		mParseLog.push_back(ParseLog(mCurLine, LogType::LERROR, Utils::FormatCString(_T("Unexpected %s"), mLexicalAnalyzer.mLex2String[GetCurToken().lex])));
 		LogUtil::Error(Utils::FormatCString(_T("Unexpected %s near line %d"), mLexicalAnalyzer.mLex2String[GetCurToken().lex], mCurLine));
 		NextToken();
 	}
 
+	mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("[ActParamMore] Finished")));
 	return apm;
 }
 
@@ -1583,6 +1785,7 @@ RTreeNode* RSyntaxParser::ActParamMore()
 // RelExp ::= Exp OtherRelE
 RTreeNode* RSyntaxParser::RelExp()
 {
+	mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("Parsing [RelExp]")));
 	LogUtil::Info(Utils::FormatCString(_T("Parsing RelExp in line %d"), mCurLine));
 	RTreeNode* re = new RTreeNode();
 	re->mNodeType = NodeType::RelExp;
@@ -1591,6 +1794,7 @@ RTreeNode* RSyntaxParser::RelExp()
 	re->mChilds.push_back(Exp());
 	re->mChilds.push_back(OtherRelE());
 
+	mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("[RelExp] Finished")));
 	return re;
 }
 
@@ -1598,6 +1802,7 @@ RTreeNode* RSyntaxParser::RelExp()
 // OtherRelE ::= CmpOp Exp
 RTreeNode* RSyntaxParser::OtherRelE()
 {
+	mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("Parsing [OtherRelE]")));
 	LogUtil::Info(Utils::FormatCString(_T("Parsing OtherRelE in line %d"), mCurLine));
 	RTreeNode* ore = new RTreeNode();
 	ore->mNodeType = NodeType::OtherRelE;
@@ -1606,12 +1811,14 @@ RTreeNode* RSyntaxParser::OtherRelE()
 	ore->mChilds.push_back(CmpOp());
 	ore->mChilds.push_back(Exp());
 
+	mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("[OtherRelE] Finished")));
 	return ore;
 }
 
 // Exp ::= Term OtherTerm
 RTreeNode* RSyntaxParser::Exp()
 {
+	mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("Parsing [Exp]")));
 	LogUtil::Info(Utils::FormatCString(_T("Parsing Exp in line %d"), mCurLine));
 	RTreeNode* exp = new RTreeNode();
 	exp->mNodeType = NodeType::Exp;
@@ -1619,7 +1826,8 @@ RTreeNode* RSyntaxParser::Exp()
 
 	exp->mChilds.push_back(Term());
 	exp->mChilds.push_back(OtherTerm());
-	
+
+	mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("[Exp] Finished")));
 	return exp;
 }
 
@@ -1628,6 +1836,7 @@ RTreeNode* RSyntaxParser::Exp()
 //				| AddOp Exp { PLUS, MINUS }
 RTreeNode* RSyntaxParser::OtherTerm()
 {
+	mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("Parsing [OtherTerm]")));
 	LogUtil::Info(Utils::FormatCString(_T("Parsing OtherTerm in line %d"), mCurLine));
 	RTreeNode* ot = new RTreeNode();
 	ot->mNodeType = NodeType::OtherTerm;
@@ -1644,7 +1853,8 @@ RTreeNode* RSyntaxParser::OtherTerm()
 		n->mNodeType = NodeType::EMPTY;	//空产生式
 		n->mLine = mCurLine;
 		ot->mChilds.push_back(n);
-		LogUtil::Info(Utils::FormatCString(_T("OtherTerm is EPS near line %d"), mCurLine));
+		mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("[OtherTerm] is EPSILON")));
+		LogUtil::Info(Utils::FormatCString(_T("OtherTerm is EPSILON near line %d"), mCurLine));
 	}
 	else if (GetCurToken().lex == LexType::PLUS || GetCurToken().lex == LexType::MINUS)
 	{
@@ -1653,15 +1863,18 @@ RTreeNode* RSyntaxParser::OtherTerm()
 	}
 	else
 	{
+		mParseLog.push_back(ParseLog(mCurLine, LogType::LERROR, Utils::FormatCString(_T("Unexpected %s"), mLexicalAnalyzer.mLex2String[GetCurToken().lex])));
 		LogUtil::Error(Utils::FormatCString(_T("Unexpected %s near line %d"), mLexicalAnalyzer.mLex2String[GetCurToken().lex], mCurLine));
 		NextToken();
 	}
+	mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("[OtherTerm] Finished")));
 	return ot;
 }
 
 // Term ::= Factor OtherFactor
 RTreeNode* RSyntaxParser::Term()
 {
+	mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("Parsing [Term]")));
 	LogUtil::Info(Utils::FormatCString(_T("Parsing Term in line %d"), mCurLine));
 	RTreeNode* t = new RTreeNode();
 	t->mNodeType = NodeType::Term;
@@ -1669,6 +1882,7 @@ RTreeNode* RSyntaxParser::Term()
 	
 	t->mChilds.push_back(Factor());
 	t->mChilds.push_back(OtherFactor());
+	mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("[Term] Finished")));
 	return t;
 }
 
@@ -1679,6 +1893,7 @@ RTreeNode* RSyntaxParser::Term()
 //			| Variable { IDENTIFIER }
 RTreeNode* RSyntaxParser::Factor()
 {
+	mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("Parsing [Factor]")));
 	LogUtil::Info(Utils::FormatCString(_T("Parsing Factor in line %d"), mCurLine));
 	RTreeNode* f = new RTreeNode();
 	f->mNodeType = NodeType::Factor;
@@ -1716,9 +1931,11 @@ RTreeNode* RSyntaxParser::Factor()
 	}
 	else
 	{
+		mParseLog.push_back(ParseLog(mCurLine, LogType::LERROR, Utils::FormatCString(_T("Unexpected %s"), mLexicalAnalyzer.mLex2String[GetCurToken().lex])));
 		LogUtil::Error(Utils::FormatCString(_T("Unexpected %s near line %d"), mLexicalAnalyzer.mLex2String[GetCurToken().lex], mCurLine));
 		NextToken();
 	}
+	mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("[Factor] Finished")));
 	return f;
 }
 
@@ -1728,6 +1945,7 @@ RTreeNode* RSyntaxParser::Factor()
 //				| MultOp Term { MULTIPLY, DIVIDE}
 RTreeNode* RSyntaxParser::OtherFactor()
 {
+	mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("Parsing [OtherFactor]")));
 	LogUtil::Info(Utils::FormatCString(_T("Parsing OtherFactor in line %d"), mCurLine));
 	RTreeNode* of = new RTreeNode();
 	of->mNodeType = NodeType::OtherFactor;
@@ -1745,7 +1963,8 @@ RTreeNode* RSyntaxParser::OtherFactor()
 		n->mNodeType = NodeType::EMPTY;	//空产生式
 		n->mLine = mCurLine;
 		of->mChilds.push_back(n);
-		LogUtil::Info(Utils::FormatCString(_T("OtherFactor is EPS near line %d"), mCurLine));
+		mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("[OtherFactor] is EPSILON")));
+		LogUtil::Info(Utils::FormatCString(_T("OtherFactor is EPSILON near line %d"), mCurLine));
 	}
 	else if (GetCurToken().lex == LexType::MULTIPLY || GetCurToken().lex == LexType::DIVIDE)
 	{
@@ -1754,9 +1973,11 @@ RTreeNode* RSyntaxParser::OtherFactor()
 	}
 	else
 	{
+		mParseLog.push_back(ParseLog(mCurLine, LogType::LERROR, Utils::FormatCString(_T("Unexpected %s"), mLexicalAnalyzer.mLex2String[GetCurToken().lex])));
 		LogUtil::Error(Utils::FormatCString(_T("Unexpected %s near line %d"), mLexicalAnalyzer.mLex2String[GetCurToken().lex], mCurLine));
 		NextToken();
 	}
+	mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("[OtherFactor] Finished")));
 	return of;
 }
 
@@ -1764,6 +1985,7 @@ RTreeNode* RSyntaxParser::OtherFactor()
 // Variable ::= T-<IDENTIFIER> VariMore
 RTreeNode* RSyntaxParser::Variable()
 {
+	mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("Parsing [Variable]")));
 	LogUtil::Info(Utils::FormatCString(_T("Parsing Variable in line %d"), mCurLine));
 	RTreeNode* v = new RTreeNode();
 	v->mNodeType = NodeType::Variable;
@@ -1776,7 +1998,8 @@ RTreeNode* RSyntaxParser::Variable()
 		v->mChilds.push_back(GetMatchedTerminal(t));
 	}
 	v->mChilds.push_back(VariMore());
-	
+
+	mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("[Variable] Finished")));
 	return v;
 }
 
@@ -1787,6 +2010,7 @@ RTreeNode* RSyntaxParser::Variable()
 //				| T-<DOT> FieldVar	{DOT}
 RTreeNode* RSyntaxParser::VariMore()
 {
+	mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("Parsing [VariMore]")));
 	LogUtil::Info(Utils::FormatCString(_T("Parsing VariMore in line %d"), mCurLine));
 	RTreeNode* vm = new RTreeNode();
 	vm->mNodeType = NodeType::VariMore;
@@ -1806,7 +2030,8 @@ RTreeNode* RSyntaxParser::VariMore()
 		n->mNodeType = NodeType::EMPTY;	//空产生式
 		n->mLine = mCurLine;
 		vm->mChilds.push_back(n);
-		LogUtil::Info(Utils::FormatCString(_T("VariMore is EPS near line %d"), mCurLine));
+		mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("[VariMore] is EPSILON")));
+		LogUtil::Info(Utils::FormatCString(_T("VariMore is EPSILON near line %d"), mCurLine));
 	}
 	else if (GetCurToken().lex == LexType::LSQUAREBRACKET)
 	{
@@ -1836,15 +2061,18 @@ RTreeNode* RSyntaxParser::VariMore()
 	}
 	else
 	{
+		mParseLog.push_back(ParseLog(mCurLine, LogType::LERROR, Utils::FormatCString(_T("Unexpected %s"), mLexicalAnalyzer.mLex2String[GetCurToken().lex])));
 		LogUtil::Error(Utils::FormatCString(_T("Unexpected %s near line %d"), mLexicalAnalyzer.mLex2String[GetCurToken().lex], mCurLine));
 		NextToken();
 	}
+	mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("[VariMore] Finished")));
 	return vm;
 }
 
 // FieldVar ::= T-<IDENTIFIER> VariMore
 RTreeNode* RSyntaxParser::FieldVar()
 {
+	mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("Parsing [FieldVar]")));
 	LogUtil::Info(Utils::FormatCString(_T("Parsing FieldVar in line %d"), mCurLine));
 	RTreeNode* fv = new RTreeNode();
 	fv->mNodeType = NodeType::FieldVar;
@@ -1857,7 +2085,8 @@ RTreeNode* RSyntaxParser::FieldVar()
 		fv->mChilds.push_back(GetMatchedTerminal(t));
 	}
 	fv->mChilds.push_back(VariMore());
-	
+
+	mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("[FieldVar] Finished")));
 	return fv;
 }
 
@@ -1867,6 +2096,7 @@ RTreeNode* RSyntaxParser::FieldVar()
 //				| T-<LSQUAREBRACKET> Exp T-<RSQUAREBRACKET> { LSQUAREBRACKET }
 RTreeNode* RSyntaxParser::FieldVarMore()
 {
+	mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("Parsing [FieldVarMore]")));
 	LogUtil::Info(Utils::FormatCString(_T("Parsing FieldVarMore in line %d"), mCurLine));
 	RTreeNode* fvm = new RTreeNode();
 	fvm->mNodeType = NodeType::FieldVarMore;
@@ -1885,7 +2115,8 @@ RTreeNode* RSyntaxParser::FieldVarMore()
 		n->mNodeType = NodeType::EMPTY;	//空产生式
 		n->mLine = mCurLine;
 		fvm->mChilds.push_back(n);
-		LogUtil::Info(Utils::FormatCString(_T("FieldVarMore is EPS near line %d"), mCurLine));
+		mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("[FieldVarMore] is EPSILON")));
+		LogUtil::Info(Utils::FormatCString(_T("FieldVarMore is EPSILON near line %d"), mCurLine));
 	}
 	else if (GetCurToken().lex == LexType::LSQUAREBRACKET)
 	{
@@ -1905,9 +2136,11 @@ RTreeNode* RSyntaxParser::FieldVarMore()
 	}
 	else
 	{
+		mParseLog.push_back(ParseLog(mCurLine, LogType::LERROR, Utils::FormatCString(_T("Unexpected %s"), mLexicalAnalyzer.mLex2String[GetCurToken().lex])));
 		LogUtil::Error(Utils::FormatCString(_T("Unexpected %s near line %d"), mLexicalAnalyzer.mLex2String[GetCurToken().lex], mCurLine));
 		NextToken();
 	}
+	mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("[FieldVarMore] Finished")));
 	return fvm;
 }
 
@@ -1918,6 +2151,7 @@ RTreeNode* RSyntaxParser::FieldVarMore()
 //			|T-<EQU>	{ EQU }
 RTreeNode* RSyntaxParser::CmpOp()
 {
+	mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("Parsing [CmpOp]")));
 	LogUtil::Info(Utils::FormatCString(_T("Parsing CmpOp in line %d"), mCurLine));
 	RTreeNode* co = new RTreeNode();
 	co->mNodeType = NodeType::CmpOp;
@@ -1943,10 +2177,12 @@ RTreeNode* RSyntaxParser::CmpOp()
 	}
 	else
 	{
+		mParseLog.push_back(ParseLog(mCurLine, LogType::LERROR, Utils::FormatCString(_T("Unexpected %s"), mLexicalAnalyzer.mLex2String[GetCurToken().lex])));
 		LogUtil::Error(Utils::FormatCString(_T("Unexpected %s near line %d"), mLexicalAnalyzer.mLex2String[GetCurToken().lex], mCurLine));
 		NextToken();
 	}	
 
+	mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("[CmpOp] Finished")));
 	return co;
 }
 
@@ -1955,6 +2191,7 @@ RTreeNode* RSyntaxParser::CmpOp()
 //			|T-<MINUS>	{ MINUS }
 RTreeNode* RSyntaxParser::AddOp()
 {
+	mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("Parsing [AddOp]")));
 	LogUtil::Info(Utils::FormatCString(_T("Parsing AddOp in line %d"), mCurLine));
 	RTreeNode* ao = new RTreeNode();
 	ao->mNodeType = NodeType::AddOp;
@@ -1980,10 +2217,12 @@ RTreeNode* RSyntaxParser::AddOp()
 	}
 	else
 	{
+		mParseLog.push_back(ParseLog(mCurLine, LogType::LERROR, Utils::FormatCString(_T("Unexpected %s"), mLexicalAnalyzer.mLex2String[GetCurToken().lex])));
 		LogUtil::Error(Utils::FormatCString(_T("Unexpected %s near line %d"), mLexicalAnalyzer.mLex2String[GetCurToken().lex], mCurLine));
 		NextToken();
 	}
 
+	mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("[AddOp] Finished")));
 	return ao;
 }
 
@@ -1992,6 +2231,7 @@ RTreeNode* RSyntaxParser::AddOp()
 //			|T-<DIVIDE>	{ DIVIDE }
 RTreeNode* RSyntaxParser::MultOp()
 {
+	mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("Parsing [MultOp]")));
 	LogUtil::Info(Utils::FormatCString(_T("Parsing MultOp in line %d"), mCurLine));
 	RTreeNode* mo = new RTreeNode();
 	mo->mNodeType = NodeType::MultOp;
@@ -2017,16 +2257,19 @@ RTreeNode* RSyntaxParser::MultOp()
 	}
 	else
 	{
+		mParseLog.push_back(ParseLog(mCurLine, LogType::LERROR, Utils::FormatCString(_T("Unexpected %s"), mLexicalAnalyzer.mLex2String[GetCurToken().lex])));
 		LogUtil::Error(Utils::FormatCString(_T("Unexpected %s near line %d"), mLexicalAnalyzer.mLex2String[GetCurToken().lex], mCurLine));
 		NextToken();
 	}	
 
+	mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("[MultOp] Finished")));
 	return mo;
 }
 
 // ProgramBody ::= T-<BEGIN> StmList T-<END>
 RTreeNode* RSyntaxParser::ProgramBody()
 {
+	mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("Parsing [ProgramBody]")));
 	LogUtil::Info(Utils::FormatCString(_T("Parsing ProgramBody in line %d"), mCurLine));
 	RTreeNode* pb = new RTreeNode();
 	pb->mNodeType = NodeType::ProgramBody;
@@ -2048,6 +2291,7 @@ RTreeNode* RSyntaxParser::ProgramBody()
 		pb->mChilds.push_back(GetMatchedTerminal(t));
 	}
 
+	mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("[ProgramBody] Finished")));
 	return pb;
 }
 
@@ -2055,6 +2299,7 @@ bool RSyntaxParser::Match(LexType type)
 {
 	if (GetCurToken().lex == type)
 	{
+		mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, Utils::FormatCString(_T("%s [%s] Matched"), mLexicalAnalyzer.mLex2String[type], GetCurToken().sem)));
 		LogUtil::Info(Utils::FormatCString(_T("%s [%s] matched near line %d"), mLexicalAnalyzer.mLex2String[type], GetCurToken().sem, mCurLine));
 		NextToken();
 		mCurLine = GetCurToken().line;
@@ -2062,6 +2307,8 @@ bool RSyntaxParser::Match(LexType type)
 	}
 	else
 	{
+		mParseLog.push_back(ParseLog(mCurLine, LogType::LERROR, Utils::FormatCString(_T("Unexpected %s"), mLexicalAnalyzer.mLex2String[GetCurToken().lex])));
+		mParseLog.push_back(ParseLog(mCurLine, LogType::LERROR, Utils::FormatCString(_T("Missing %s"), mLexicalAnalyzer.mLex2String[type])));
 		LogUtil::Error(Utils::FormatCString(_T("Unexpected %s near line %d"), mLexicalAnalyzer.mLex2String[GetCurToken().lex], mCurLine));
 		LogUtil::Error(Utils::FormatCString(_T("Missing %s near line %d"), mLexicalAnalyzer.mLex2String[type], mCurLine));
 		NextToken();
@@ -2089,4 +2336,20 @@ void RSyntaxParser::ReleaseTree(RTreeNode* r)
 	}
 	delete r;
 	r = NULL;
+}
+
+void RSyntaxParser::RecordLog(LogType type, int line, CString log)
+{
+	switch (type)
+	{
+	case LERROR:
+
+		break;
+	case LINFO:
+		break;
+	case LDEBUG:
+		break;
+	default:
+		break;
+	}
 }

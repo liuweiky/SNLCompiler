@@ -20,6 +20,7 @@ LexicalAnalyzer::LexicalAnalyzer()
 	mLex2String[LexType::IDENTIFIER] = "<IDENTIFIER>";
 	mLex2String[LexType::TYPE] = "<TYPE>";
 	mLex2String[LexType::UINTEGER] = "<UINTEGER>";
+	mLex2String[LexType::CHARACTER] = "<CHARACTER>";
 	mLex2String[LexType::EQU] = "<EQU>";
 	mLex2String[LexType::LT] = "<LT>";
 	mLex2String[LexType::LEXEOF] = "<LEXEOF>";
@@ -59,6 +60,7 @@ LexicalAnalyzer::LexicalAnalyzer()
 	mReservedWords[_T("type")] = LexType::TYPE;
 	mReservedWords[_T("var")] = LexType::VAR;
 	mReservedWords[_T("integer")] = LexType::INTEGER;
+	mReservedWords[_T("char")] = LexType::CHARACTER;
 	mReservedWords[_T("array")] = LexType::ARRAY;
 	mReservedWords[_T("of")] = LexType::OF;
 	mReservedWords[_T("procedure")] = LexType::PROCEDURE;
@@ -168,7 +170,7 @@ INNUM:
 	{
 		goto INNUM;
 	}
-	else
+	else if (isDelimiter(cur_char))
 	{
 		Token t(mCurLine, LexType::UINTEGER, str);
 		mTokenList.push_back(t);
@@ -176,6 +178,8 @@ INNUM:
 		ungetNextChar();
 		goto S0;
 	}
+	else
+		goto INERROR;
 
 INSINGLE:
 	{
@@ -320,8 +324,9 @@ INERROR:
 	{
 		Token t(mCurLine, LexType::LEXERR, str + cur_char);
 		mTokenList.push_back(t);
-		CString s = _T("Unexpected character \"");
+		CString s = _T("Unexpected symbol \"");
 		LogUtil::Error(s + cur_char + "\" in line " + Utils::int2cstr(mCurLine));
+		str = "";
 		/*cur_char = getNextChar();
 		while (!isSingleDelimiter(cur_char))
 			cur_char = getNextChar();
@@ -345,7 +350,7 @@ void LexicalAnalyzer::Lex2File()
 		Token t = mTokenList[i];
 		if (t.lex == LexType::LEXERR)
 		{
-			outstr += _T("[ERROR] Unexpected character \"");
+			outstr += _T("[ERROR] Unexpected symbol \"");
 			outstr += t.sem;
 			outstr += _T("\" in line ");
 			outstr += Utils::int2cstr(t.line);
@@ -374,6 +379,12 @@ void LexicalAnalyzer::Lex2File()
 	//AfxMessageBox(outstr);
 }
 
+
+bool LexicalAnalyzer::isDelimiter(CString ch)
+{
+
+	return isSingleDelimiter(ch) || ch == ":=" || ch == "." || ch == "..";
+}
 
 bool LexicalAnalyzer::isSingleDelimiter(CString ch)
 {

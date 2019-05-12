@@ -63,6 +63,7 @@ void CSNLCompilerDlg::DoDataExchange(CDataExchange* pDX)
 	CDialogEx::DoDataExchange(pDX);
 	DDX_Control(pDX, IDC_SRC_EDIT, mSrcEdit);
 	DDX_Control(pDX, IDC_TOKEN_LIST, mListControl);
+	DDX_Control(pDX, IDC_SYNTAXLOG_LIST, mSyntaxLogList);
 }
 
 BEGIN_MESSAGE_MAP(CSNLCompilerDlg, CDialogEx)
@@ -114,6 +115,17 @@ BOOL CSNLCompilerDlg::OnInitDialog()
 	mListControl.SetColumnWidth(2, 100);
 	// 设置整行选中
 	mListControl.SetExtendedStyle(mListControl.GetExtendedStyle() | LVS_EX_FULLROWSELECT);
+
+	
+
+	mSyntaxLogList.InsertColumn(0, _T("LINE"));
+	mSyntaxLogList.InsertColumn(1, _T("TYPE"));
+	mSyntaxLogList.InsertColumn(2, _T("LOG"));
+	mSyntaxLogList.SetColumnWidth(0, 40);
+	mSyntaxLogList.SetColumnWidth(1, 50);
+	mSyntaxLogList.SetColumnWidth(2, 280);
+	// 设置整行选中
+	mSyntaxLogList.SetExtendedStyle(mSyntaxLogList.GetExtendedStyle() | LVS_EX_FULLROWSELECT);
 
 	/*la.getTokenList();
 	la.Lex2File();*/
@@ -189,16 +201,41 @@ void CSNLCompilerDlg::OnBnClickedTokenButton()
 	{
 		CString str = _T("");
 		Token t = la.mTokenList[i];
+		int idx = mListControl.InsertItem(0, Utils::int2cstr(t.line));
 		if (t.lex == LexType::LEXERR)
 		{
-			int idx = mListControl.InsertItem(0, Utils::int2cstr(t.line));
-			mListControl.SetItemText(idx, 1, _T("[ERROR] Unexpected Character"));
+			mListControl.SetItemText(idx, 1, _T("[ERROR] Unexpected symbol"));
 			mListControl.SetItemText(idx, 2, t.sem);
 			continue;
 		}
-		int idx = mListControl.InsertItem(0, Utils::int2cstr(t.line));
 		mListControl.SetItemText(idx, 1, la.mLex2String[t.lex]);
 		if (!la.isReservedWord(t.sem) && !la.isSingleDelimiter(t.sem) && t.sem != ":=" && t.sem != "." && t.sem != "..")
 			mListControl.SetItemText(idx, 2, t.sem);
+	}
+
+	RSyntaxParser parser(la.mTokenList);
+	parser.Parse();
+	mSyntaxLogList.DeleteAllItems();
+	for (int i = parser.mParseLog.size() - 1; i >= 0; i--)
+	{
+		CString str = _T("");
+		ParseLog log = parser.mParseLog[i];
+		int idx = mSyntaxLogList.InsertItem(0, Utils::int2cstr(log.line));
+		switch (log.type)
+		{
+		case LogType::LERROR:
+			mSyntaxLogList.SetItemText(idx, 1, _T("ERROR"));
+			break;
+		case LogType::LDEBUG:
+			mSyntaxLogList.SetItemText(idx, 1, _T("DEBUG"));
+			break;
+		case LogType::LINFO:
+			mSyntaxLogList.SetItemText(idx, 1, _T("INFO"));
+			break;
+		default:
+			break;
+		}
+		
+		mSyntaxLogList.SetItemText(idx, 2, log.log);
 	}
 }

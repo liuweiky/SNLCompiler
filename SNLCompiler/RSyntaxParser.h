@@ -8,6 +8,12 @@
 
 using namespace std;
 
+enum LogType
+{
+	LERROR,
+	LINFO,
+	LDEBUG
+};
 
 // Óï¾ä¿éÀàÐÍ
 enum NodeType
@@ -42,6 +48,7 @@ enum NodeType
 	VarDecMore,
 	ProcDec,
 	ProcDeclaration,
+	ProcDecMore,
 	ParamList,
 	ParamDecList,
 	Param,
@@ -77,7 +84,13 @@ enum NodeType
 	Terminal	// ÖÕ¼«·û
 };
 
-
+struct ParseLog
+{
+	ParseLog(int li, LogType t, CString lg): line(li), type(t), log(lg){}
+	int line;
+	LogType type;
+	CString log;
+};
 
 class RTreeNode
 {
@@ -99,13 +112,17 @@ class RSyntaxParser
 {
 public:
 	RSyntaxParser();
+	RSyntaxParser(vector<Token> tokens);
 	~RSyntaxParser();
 
 	//vector<RTreeNode*> mChildNodes;
 	vector<Token> mTokenList;
+	vector<ParseLog> mParseLog;
 	int mTokenPtr;
 	int mCurLine;
 	LexicalAnalyzer mLexicalAnalyzer;
+
+	RTreeNode* mSytaxTree;
 
 	RTreeNode* Parse();
 	RTreeNode* Program();
@@ -113,6 +130,7 @@ public:
 	RTreeNode* DeclarePart();
 	RTreeNode* ProcDec();
 	RTreeNode* ProcDeclaration();
+	RTreeNode* ProcDecMore();
 	RTreeNode* ProcDecPart();
 	RTreeNode* ProcBody();
 	RTreeNode* ParamList();
@@ -161,39 +179,23 @@ public:
 	Token GetCurToken();
 
 	RTreeNode* VarDecMore();
-
 	RTreeNode* TypeDec();
-
 	RTreeNode* TypeDeclaration();
-
 	RTreeNode* TypeDecList();
-
 	RTreeNode* TypeId();
-
 	RTreeNode* TypeDef();
-
 	RTreeNode* BaseType();
-
 	RTreeNode* StructureType();
-
 	RTreeNode* ArrayType();
-
 	RTreeNode* RecType();
-
 	RTreeNode* FieldDecList();
-
 	RTreeNode* IdList();
-
 	RTreeNode* IdMore();
-
 	RTreeNode* FieldDecMore();
-
 	bool Match(LexType type);
-
 	RTreeNode* GetMatchedTerminal(Token t);
-
 	void ReleaseTree(RTreeNode* r);
 
-
+	void RecordLog(LogType type, int line, CString log);
 };
 

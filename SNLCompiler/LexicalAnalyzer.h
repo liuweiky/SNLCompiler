@@ -89,6 +89,7 @@ public:
 	map<CString, LexType> mReservedWords;
 
 	void Lex2File();
+	bool isDelimiter(CString ch);
 	bool isSingleDelimiter(CString ch);
 	bool isReservedWord(CString word);
 	bool isAlpha(CString ch);

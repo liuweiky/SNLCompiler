@@ -10,6 +10,9 @@
 #define IDC_SRC_EDIT                    1001
 #define IDC_TOKEN_BUTTON                1003
 #define IDC_TOKEN_LIST                  1004
+#define IDC_SYNTAX_PARSE                1005
+#define IDC_SYNTAX_PARSE_BUTTON         1005
+#define IDC_SYNTAXLOG_LIST              1006
 
 // Next default values for new objects
 // 
