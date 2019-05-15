@@ -24,6 +24,7 @@ enum NodeType
 	TypeId,
 	TypeDef,
 	TypeDecMore,
+	TypeDeclaration,
 	BaseType,
 	StructureType,
 	ArrayType,
