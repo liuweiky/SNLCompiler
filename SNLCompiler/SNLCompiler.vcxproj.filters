@@ -45,6 +45,12 @@
     <ClInclude Include="RSyntaxParser.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="LL1SyntaxParser.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="SyntaxParserCommon.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="SNLCompiler.cpp">
@@ -66,6 +72,9 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="RSyntaxParser.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="LL1SyntaxParser.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

@@ -189,17 +189,20 @@
   <ItemGroup>
     <ClInclude Include="framework.h" />
     <ClInclude Include="LexicalAnalyzer.h" />
+    <ClInclude Include="LL1SyntaxParser.h" />
     <ClInclude Include="LogUtil.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="SNLCompiler.h" />
     <ClInclude Include="SNLCompilerDlg.h" />
     <ClInclude Include="RSyntaxParser.h" />
+    <ClInclude Include="SyntaxParserCommon.h" />
     <ClInclude Include="targetver.h" />
     <ClInclude Include="Utils.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="LexicalAnalyzer.cpp" />
+    <ClCompile Include="LL1SyntaxParser.cpp" />
     <ClCompile Include="LogUtil.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>

@@ -8,7 +8,6 @@
 #define IDD_SNLCOMPILER_DIALOG          102
 #define IDR_MAINFRAME                   128
 #define IDC_SRC_EDIT                    1001
-#define IDC_SYN                         1002
 #define IDC_SYNTAX_TREE_EDIT            1002
 #define IDC_TOKEN_BUTTON                1003
 #define IDC_TOKEN_LIST                  1004
