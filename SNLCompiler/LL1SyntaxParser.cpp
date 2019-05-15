@@ -29,99 +29,6 @@ LL1SyntaxParser::~LL1SyntaxParser()
 void LL1SyntaxParser::InitMap()
 {
 	mLL1Map[NodeType::Program][LexType::PROGRAM] = Get1();
-	// 2
-	mLL1Map[NodeType::Program][LexType::PROGRAM] = Get2();
-
-	mLL1Map[NodeType::Exp][LexType::UINTEGER] = Get83();
-	mLL1Map[NodeType::Exp][LexType::IDENTIFIER] = Get83();
-	mLL1Map[NodeType::Exp][LexType::LPARENTHESIS] = Get83();
-	mLL1Map[NodeType::OtherTerm][LexType::END] = Get84();
-	mLL1Map[NodeType::OtherTerm][LexType::THEN] = Get84();
-	mLL1Map[NodeType::OtherTerm][LexType::ELSE] = Get84();
-	mLL1Map[NodeType::OtherTerm][LexType::FI] = Get84();
-	mLL1Map[NodeType::OtherTerm][LexType::DO] = Get84();
-	mLL1Map[NodeType::OtherTerm][LexType::ENDWHILE] = Get84();
-	mLL1Map[NodeType::OtherTerm][LexType::SEMICOLON] = Get84();
-	mLL1Map[NodeType::OtherTerm][LexType::COMMA] = Get84();
-	mLL1Map[NodeType::OtherTerm][LexType::RPARENTHESIS] = Get84();
-	mLL1Map[NodeType::OtherTerm][LexType::RSQUAREBRACKET] = Get84();
-	mLL1Map[NodeType::OtherTerm][LexType::LT] = Get84();
-	mLL1Map[NodeType::OtherTerm][LexType::EQU] = Get84();
-	mLL1Map[NodeType::OtherTerm][LexType::PLUS] = Get85();
-	mLL1Map[NodeType::OtherTerm][LexType::MINUS] = Get85();
-
-	mLL1Map[NodeType::Term][LexType::UINTEGER] = Get86();
-	mLL1Map[NodeType::Term][LexType::IDENTIFIER] = Get86();
-	mLL1Map[NodeType::Term][LexType::RPARENTHESIS] = Get86();
-
-	mLL1Map[NodeType::OtherFactor][LexType::END] = Get87();
-	mLL1Map[NodeType::OtherFactor][LexType::THEN] = Get87();
-	mLL1Map[NodeType::OtherFactor][LexType::ELSE] = Get87();
-	mLL1Map[NodeType::OtherFactor][LexType::FI] = Get87();
-	mLL1Map[NodeType::OtherFactor][LexType::DO] = Get87();
-	mLL1Map[NodeType::OtherFactor][LexType::ENDWHILE] = Get87();
-	mLL1Map[NodeType::OtherFactor][LexType::SEMICOLON] = Get87();
-	mLL1Map[NodeType::OtherFactor][LexType::COMMA] = Get87();
-	mLL1Map[NodeType::OtherFactor][LexType::RPARENTHESIS] = Get87();
-	mLL1Map[NodeType::OtherFactor][LexType::RSQUAREBRACKET] = Get87();
-	mLL1Map[NodeType::OtherFactor][LexType::LT] = Get87();
-	mLL1Map[NodeType::OtherFactor][LexType::EQU] = Get87();
-	mLL1Map[NodeType::OtherFactor][LexType::PLUS] = Get87();
-	mLL1Map[NodeType::OtherFactor][LexType::MINUS] = Get87();
-	mLL1Map[NodeType::OtherFactor][LexType::MULTIPLY] = Get88();
-	mLL1Map[NodeType::OtherFactor][LexType::DIVIDE] = Get88();
-
-	mLL1Map[NodeType::Factor][LexType::UINTEGER] = Get90();
-	mLL1Map[NodeType::Factor][LexType::IDENTIFIER] = Get91();
-	mLL1Map[NodeType::Factor][LexType::LPARENTHESIS] = Get89();
-	mLL1Map[NodeType::Variable][LexType::IDENTIFIER] = Get92();
-	mLL1Map[NodeType::VariMore][LexType::END] = Get93();
-	mLL1Map[NodeType::VariMore][LexType::THEN] = Get93();
-	mLL1Map[NodeType::VariMore][LexType::ELSE] = Get93();
-	mLL1Map[NodeType::VariMore][LexType::FI] = Get93();
-	mLL1Map[NodeType::VariMore][LexType::DO] = Get93();
-	mLL1Map[NodeType::VariMore][LexType::ENDWHILE] = Get93();
-	mLL1Map[NodeType::VariMore][LexType::DOT] = Get95();
-	mLL1Map[NodeType::VariMore][LexType::SEMICOLON] = Get93();
-	mLL1Map[NodeType::VariMore][LexType::COMMA] = Get93();
-	mLL1Map[NodeType::VariMore][LexType::RPARENTHESIS] = Get93();
-	mLL1Map[NodeType::VariMore][LexType::LSQUAREBRACKET] = Get94();
-	mLL1Map[NodeType::VariMore][LexType::RSQUAREBRACKET] = Get93();
-	mLL1Map[NodeType::VariMore][LexType::LT] = Get93();
-	mLL1Map[NodeType::VariMore][LexType::EQU] = Get93();
-	mLL1Map[NodeType::VariMore][LexType::PLUS] = Get93();
-	mLL1Map[NodeType::VariMore][LexType::MINUS] = Get93();
-	mLL1Map[NodeType::VariMore][LexType::MULTIPLY] = Get93();
-	mLL1Map[NodeType::VariMore][LexType::DIVIDE] = Get93();
-	mLL1Map[NodeType::VariMore][LexType::ASSIGN] = Get93();
-
-	mLL1Map[NodeType::FieldVar][LexType::IDENTIFIER] = Get96();
-	mLL1Map[NodeType::FieldVarMore][LexType::END] = Get97();
-	mLL1Map[NodeType::FieldVarMore][LexType::THEN] = Get97();
-	mLL1Map[NodeType::FieldVarMore][LexType::ELSE] = Get97();
-	mLL1Map[NodeType::FieldVarMore][LexType::FI] = Get97();
-	mLL1Map[NodeType::FieldVarMore][LexType::DO] = Get97();
-	mLL1Map[NodeType::FieldVarMore][LexType::ENDWHILE] = Get97();
-	mLL1Map[NodeType::FieldVarMore][LexType::SEMICOLON] = Get97();
-	mLL1Map[NodeType::FieldVarMore][LexType::COMMA] = Get97();
-	mLL1Map[NodeType::FieldVarMore][LexType::RPARENTHESIS] = Get97();
-	mLL1Map[NodeType::FieldVarMore][LexType::LSQUAREBRACKET] = Get98();
-	mLL1Map[NodeType::FieldVarMore][LexType::RSQUAREBRACKET] = Get97();
-	mLL1Map[NodeType::FieldVarMore][LexType::LT] = Get97();
-	mLL1Map[NodeType::FieldVarMore][LexType::EQU] = Get97();
-	mLL1Map[NodeType::FieldVarMore][LexType::PLUS] = Get97();
-	mLL1Map[NodeType::FieldVarMore][LexType::MINUS] = Get97();
-	mLL1Map[NodeType::FieldVarMore][LexType::MULTIPLY] = Get97();
-	mLL1Map[NodeType::FieldVarMore][LexType::DIVIDE] = Get97();
-	mLL1Map[NodeType::FieldVarMore][LexType::ASSIGN] = Get97();
-
-	mLL1Map[NodeType::CmpOp][LexType::LT] = Get99();
-	mLL1Map[NodeType::CmpOp][LexType::EQU] = Get100();
-	mLL1Map[NodeType::AddOp][LexType::PLUS] = Get101();
-	mLL1Map[NodeType::AddOp][LexType::MINUS] = Get102();
-
-	mLL1Map[NodeType::MultOp][LexType::MULTIPLY] = Get103();
-	mLL1Map[NodeType::MultOp][LexType::DIVIDE] = Get104();
 	mLL1Map[NodeType::ProgramHead][LexType::PROGRAM] = Get2();
 	mLL1Map[NodeType::ProgramName][LexType::IDENTIFIER] = Get3();
 	mLL1Map[NodeType::DeclarePart][LexType::TYPE] = Get4();
@@ -258,6 +165,96 @@ void LL1SyntaxParser::InitMap()
 	mLL1Map[NodeType::OtherRelE][LexType::MINUS] = Get82();
 
 
+	mLL1Map[NodeType::Exp][LexType::UINTEGER] = Get83();
+	mLL1Map[NodeType::Exp][LexType::IDENTIFIER] = Get83();
+	mLL1Map[NodeType::Exp][LexType::LPARENTHESIS] = Get83();
+	mLL1Map[NodeType::OtherTerm][LexType::END] = Get84();
+	mLL1Map[NodeType::OtherTerm][LexType::THEN] = Get84();
+	mLL1Map[NodeType::OtherTerm][LexType::ELSE] = Get84();
+	mLL1Map[NodeType::OtherTerm][LexType::FI] = Get84();
+	mLL1Map[NodeType::OtherTerm][LexType::DO] = Get84();
+	mLL1Map[NodeType::OtherTerm][LexType::ENDWHILE] = Get84();
+	mLL1Map[NodeType::OtherTerm][LexType::SEMICOLON] = Get84();
+	mLL1Map[NodeType::OtherTerm][LexType::COMMA] = Get84();
+	mLL1Map[NodeType::OtherTerm][LexType::RPARENTHESIS] = Get84();
+	mLL1Map[NodeType::OtherTerm][LexType::RSQUAREBRACKET] = Get84();
+	mLL1Map[NodeType::OtherTerm][LexType::LT] = Get84();
+	mLL1Map[NodeType::OtherTerm][LexType::EQU] = Get84();
+	mLL1Map[NodeType::OtherTerm][LexType::PLUS] = Get85();
+	mLL1Map[NodeType::OtherTerm][LexType::MINUS] = Get85();
+
+	mLL1Map[NodeType::Term][LexType::UINTEGER] = Get86();
+	mLL1Map[NodeType::Term][LexType::IDENTIFIER] = Get86();
+	mLL1Map[NodeType::Term][LexType::RPARENTHESIS] = Get86();
+
+	mLL1Map[NodeType::OtherFactor][LexType::END] = Get87();
+	mLL1Map[NodeType::OtherFactor][LexType::THEN] = Get87();
+	mLL1Map[NodeType::OtherFactor][LexType::ELSE] = Get87();
+	mLL1Map[NodeType::OtherFactor][LexType::FI] = Get87();
+	mLL1Map[NodeType::OtherFactor][LexType::DO] = Get87();
+	mLL1Map[NodeType::OtherFactor][LexType::ENDWHILE] = Get87();
+	mLL1Map[NodeType::OtherFactor][LexType::SEMICOLON] = Get87();
+	mLL1Map[NodeType::OtherFactor][LexType::COMMA] = Get87();
+	mLL1Map[NodeType::OtherFactor][LexType::RPARENTHESIS] = Get87();
+	mLL1Map[NodeType::OtherFactor][LexType::RSQUAREBRACKET] = Get87();
+	mLL1Map[NodeType::OtherFactor][LexType::LT] = Get87();
+	mLL1Map[NodeType::OtherFactor][LexType::EQU] = Get87();
+	mLL1Map[NodeType::OtherFactor][LexType::PLUS] = Get87();
+	mLL1Map[NodeType::OtherFactor][LexType::MINUS] = Get87();
+	mLL1Map[NodeType::OtherFactor][LexType::MULTIPLY] = Get88();
+	mLL1Map[NodeType::OtherFactor][LexType::DIVIDE] = Get88();
+
+	mLL1Map[NodeType::Factor][LexType::UINTEGER] = Get90();
+	mLL1Map[NodeType::Factor][LexType::IDENTIFIER] = Get91();
+	mLL1Map[NodeType::Factor][LexType::LPARENTHESIS] = Get89();
+	mLL1Map[NodeType::Variable][LexType::IDENTIFIER] = Get92();
+	mLL1Map[NodeType::VariMore][LexType::END] = Get93();
+	mLL1Map[NodeType::VariMore][LexType::THEN] = Get93();
+	mLL1Map[NodeType::VariMore][LexType::ELSE] = Get93();
+	mLL1Map[NodeType::VariMore][LexType::FI] = Get93();
+	mLL1Map[NodeType::VariMore][LexType::DO] = Get93();
+	mLL1Map[NodeType::VariMore][LexType::ENDWHILE] = Get93();
+	mLL1Map[NodeType::VariMore][LexType::DOT] = Get95();
+	mLL1Map[NodeType::VariMore][LexType::SEMICOLON] = Get93();
+	mLL1Map[NodeType::VariMore][LexType::COMMA] = Get93();
+	mLL1Map[NodeType::VariMore][LexType::RPARENTHESIS] = Get93();
+	mLL1Map[NodeType::VariMore][LexType::LSQUAREBRACKET] = Get94();
+	mLL1Map[NodeType::VariMore][LexType::RSQUAREBRACKET] = Get93();
+	mLL1Map[NodeType::VariMore][LexType::LT] = Get93();
+	mLL1Map[NodeType::VariMore][LexType::EQU] = Get93();
+	mLL1Map[NodeType::VariMore][LexType::PLUS] = Get93();
+	mLL1Map[NodeType::VariMore][LexType::MINUS] = Get93();
+	mLL1Map[NodeType::VariMore][LexType::MULTIPLY] = Get93();
+	mLL1Map[NodeType::VariMore][LexType::DIVIDE] = Get93();
+	mLL1Map[NodeType::VariMore][LexType::ASSIGN] = Get93();
+
+	mLL1Map[NodeType::FieldVar][LexType::IDENTIFIER] = Get96();
+	mLL1Map[NodeType::FieldVarMore][LexType::END] = Get97();
+	mLL1Map[NodeType::FieldVarMore][LexType::THEN] = Get97();
+	mLL1Map[NodeType::FieldVarMore][LexType::ELSE] = Get97();
+	mLL1Map[NodeType::FieldVarMore][LexType::FI] = Get97();
+	mLL1Map[NodeType::FieldVarMore][LexType::DO] = Get97();
+	mLL1Map[NodeType::FieldVarMore][LexType::ENDWHILE] = Get97();
+	mLL1Map[NodeType::FieldVarMore][LexType::SEMICOLON] = Get97();
+	mLL1Map[NodeType::FieldVarMore][LexType::COMMA] = Get97();
+	mLL1Map[NodeType::FieldVarMore][LexType::RPARENTHESIS] = Get97();
+	mLL1Map[NodeType::FieldVarMore][LexType::LSQUAREBRACKET] = Get98();
+	mLL1Map[NodeType::FieldVarMore][LexType::RSQUAREBRACKET] = Get97();
+	mLL1Map[NodeType::FieldVarMore][LexType::LT] = Get97();
+	mLL1Map[NodeType::FieldVarMore][LexType::EQU] = Get97();
+	mLL1Map[NodeType::FieldVarMore][LexType::PLUS] = Get97();
+	mLL1Map[NodeType::FieldVarMore][LexType::MINUS] = Get97();
+	mLL1Map[NodeType::FieldVarMore][LexType::MULTIPLY] = Get97();
+	mLL1Map[NodeType::FieldVarMore][LexType::DIVIDE] = Get97();
+	mLL1Map[NodeType::FieldVarMore][LexType::ASSIGN] = Get97();
+
+	mLL1Map[NodeType::CmpOp][LexType::LT] = Get99();
+	mLL1Map[NodeType::CmpOp][LexType::EQU] = Get100();
+	mLL1Map[NodeType::AddOp][LexType::PLUS] = Get101();
+	mLL1Map[NodeType::AddOp][LexType::MINUS] = Get102();
+
+	mLL1Map[NodeType::MultOp][LexType::MULTIPLY] = Get103();
+	mLL1Map[NodeType::MultOp][LexType::DIVIDE] = Get104();
 
 }
 
