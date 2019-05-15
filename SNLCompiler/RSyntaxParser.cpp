@@ -828,7 +828,7 @@ RTreeNode* RSyntaxParser::TypeDeclaration()
 	mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("Parsing [TypeDeclaration]")));
 	LogUtil::Info(Utils::FormatCString(_T("Parsing TypeDeclaration in line %d"), mCurLine));
 	RTreeNode* td = new RTreeNode();
-	td->mNodeType = NodeType::TypeDec;
+	td->mNodeType = NodeType::TypeDeclaration;
 	td->mLine = mCurLine;
 
 	Token t = GetCurToken();
