@@ -16,6 +16,8 @@ RSyntaxParser::RSyntaxParser()
 	mTokenPtr = 0;
 	mCurLine = mTokenList.size() == 0 ? 0 : mTokenList[0].line;
 	mSytaxTree = NULL;
+
+	InitMap();
 }
 
 RSyntaxParser::RSyntaxParser(vector<Token> tokens)
@@ -29,6 +31,8 @@ RSyntaxParser::RSyntaxParser(vector<Token> tokens)
 	mTokenPtr = 0;
 	mCurLine = mTokenList.size() == 0 ? 0 : mTokenList[0].line;
 	mSytaxTree = NULL;
+
+	InitMap();
 }
 
 
@@ -167,7 +171,7 @@ RTreeNode* RSyntaxParser::ProgramName()
 		RTreeNode* id = new RTreeNode();
 		id->mNodeType = NodeType::Terminal;
 		id->mLine = mCurLine;
-		id->mSemName = t.sem;
+		id->mToken = t;
 		pn->mChilds.push_back(id);
 	}
 	else
@@ -2322,7 +2326,7 @@ RTreeNode* RSyntaxParser::GetMatchedTerminal(Token t)
 	RTreeNode* r = new RTreeNode();
 	r->mNodeType = NodeType::Terminal;
 	r->mLine = mCurLine;
-	r->mSemName = t.sem;
+	r->mToken = t;
 	return r;
 }
 
@@ -2352,4 +2356,107 @@ void RSyntaxParser::RecordLog(LogType type, int line, CString log)
 	default:
 		break;
 	}
+}
+
+void RSyntaxParser::InitMap()
+{
+	mNodeType2Str[NodeType::Program] = _T("Program");
+	mNodeType2Str[NodeType::ProgramHead] = _T("ProgramHead");
+	mNodeType2Str[NodeType::ProgramName] = _T("ProgramName");
+	mNodeType2Str[NodeType::ProgramBody] = _T("ProgramBody");
+	mNodeType2Str[NodeType::StmList] = _T("StmList");
+	mNodeType2Str[NodeType::Stm] = _T("Stm");
+	mNodeType2Str[NodeType::StmMore] = _T("StmMore");
+	mNodeType2Str[NodeType::DeclarePart] = _T("DeclarePart");
+	mNodeType2Str[NodeType::TypeDec] = _T("TypeDec");
+	mNodeType2Str[NodeType::EMPTY] = _T("EMPTY");
+	mNodeType2Str[NodeType::TypeDecList] = _T("TypeDecList");
+	mNodeType2Str[NodeType::TypeId] = _T("TypeId");
+	mNodeType2Str[NodeType::TypeDef] = _T("TypeDef");
+	mNodeType2Str[NodeType::TypeDecMore] = _T("TypeDecMore");
+	mNodeType2Str[NodeType::BaseType] = _T("BaseType");
+	mNodeType2Str[NodeType::StructureType] = _T("StructureType");
+	mNodeType2Str[NodeType::ArrayType] = _T("ArrayType");
+	mNodeType2Str[NodeType::RecType] = _T("RecType");
+	mNodeType2Str[NodeType::FieldDecList] = _T("FieldDecList");
+	mNodeType2Str[NodeType::IdList] = _T("IdList");
+	mNodeType2Str[NodeType::FieldDecMore] = _T("FieldDecMore");
+	mNodeType2Str[NodeType::IdMore] = _T("IdMore");
+	mNodeType2Str[NodeType::VarDec] = _T("VarDec");
+	mNodeType2Str[NodeType::VarDeclaration] = _T("VarDeclaration");
+	mNodeType2Str[NodeType::VarDecList] = _T("VarDecList");
+	mNodeType2Str[NodeType::VarIdList] = _T("VarIdList");
+	mNodeType2Str[NodeType::VarIdMore] = _T("VarIdMore");
+	mNodeType2Str[NodeType::VarDecMore] = _T("VarDecMore");
+	mNodeType2Str[NodeType::ProcDec] = _T("ProcDec");
+	mNodeType2Str[NodeType::ProcDeclaration] = _T("ProcDeclaration");
+	mNodeType2Str[NodeType::ProcDecMore] = _T("ProcDecMore");
+	mNodeType2Str[NodeType::ParamList] = _T("ParamList");
+	mNodeType2Str[NodeType::ParamDecList] = _T("ParamDecList");
+	mNodeType2Str[NodeType::Param] = _T("Param");
+	mNodeType2Str[NodeType::ParamMore] = _T("ParamMore");
+	mNodeType2Str[NodeType::FormList] = _T("FormList");
+	mNodeType2Str[NodeType::FidMore] = _T("FidMore");
+	mNodeType2Str[NodeType::ProcDecPart] = _T("ProcDecPart");
+	mNodeType2Str[NodeType::ProcBody] = _T("ProcBody");
+	mNodeType2Str[NodeType::AssCall] = _T("AssCall");
+	mNodeType2Str[NodeType::AssignmentRest] = _T("AssignmentRest");
+	mNodeType2Str[NodeType::ConditionalStm] = _T("ConditionalStm");
+	mNodeType2Str[NodeType::LoopStm] = _T("LoopStm");
+	mNodeType2Str[NodeType::InputStm] = _T("InputStm");
+	mNodeType2Str[NodeType::OutputStm] = _T("OutputStm");
+	mNodeType2Str[NodeType::ReturnStm] = _T("ReturnStm");
+	mNodeType2Str[NodeType::CallStmRest] = _T("CallStmRest");
+	mNodeType2Str[NodeType::ActParamList] = _T("ActParamList");
+	mNodeType2Str[NodeType::ActParamMore] = _T("ActParamMore");
+	mNodeType2Str[NodeType::Exp] = _T("Exp");
+	mNodeType2Str[NodeType::OtherTerm] = _T("OtherTerm");
+	mNodeType2Str[NodeType::Term] = _T("Term");
+	mNodeType2Str[NodeType::OtherFactor] = _T("OtherFactor");
+	mNodeType2Str[NodeType::Factor] = _T("Factor");
+	mNodeType2Str[NodeType::Variable] = _T("Variable");
+	mNodeType2Str[NodeType::VariMore] = _T("VariMore");
+	mNodeType2Str[NodeType::FieldVar] = _T("FieldVar");
+	mNodeType2Str[NodeType::FieldVarMore] = _T("FieldVarMore");
+	mNodeType2Str[NodeType::RelExp] = _T("RelExp");
+	mNodeType2Str[NodeType::OtherRelE] = _T("OtherRelE");
+	mNodeType2Str[NodeType::CmpOp] = _T("CmpOp");
+	mNodeType2Str[NodeType::AddOp] = _T("AddOp");
+	mNodeType2Str[NodeType::MultOp] = _T("MultOp");
+	mNodeType2Str[NodeType::Terminal] = _T("Terminal");
+}
+
+CString RSyntaxParser::GetSyntaxTreeStr(CString lftstr, CString append, RTreeNode* r)
+{
+
+	CString b = append;
+	if (r->mNodeType == NodeType::Terminal)
+		//b += mLexicalAnalyzer.mLex2String[mLexicalAnalyzer.mReservedWords[r->mSemName]];
+
+	{
+		b += mLexicalAnalyzer.mLex2String[r->mToken.lex];
+	}
+	else
+		b += mNodeType2Str[r->mNodeType];
+	b += _T("\r\n");;
+
+	vector<RTreeNode*> childs = r->mChilds;
+	if (childs.size() > 0)
+	{
+		for (int i = 0; i < childs.size() - 1; i++)
+		{
+			b += (lftstr + GetSyntaxTreeStr(lftstr + _T("      | "), _T("      |-"), childs[i]));
+			
+		}
+		b += (lftstr + GetSyntaxTreeStr(lftstr + _T("      "), _T("      |-"), childs[childs.size() - 1]));
+	}
+	return b;
+}
+
+CString RSyntaxParser::GetStrByLen(int len)
+{
+	CString str = _T("");
+	for (int i = 0; i < len; i++)
+		str += "-";
+	return str;
 }

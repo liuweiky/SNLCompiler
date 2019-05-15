@@ -4,6 +4,7 @@
 #pragma once
 
 #include <vector>
+#include <map>
 #include "LexicalAnalyzer.h"
 
 using namespace std;
@@ -97,7 +98,7 @@ class RTreeNode
 public:
 	RTreeNode() 
 	{
-		mSemName = _T("");
+		//mSemName = _T("");
 		mLine = -1;
 		mNodeType = NodeType::Terminal;
 		mChilds = vector<RTreeNode*>();
@@ -105,7 +106,7 @@ public:
 	vector<RTreeNode*> mChilds;
 	int mLine;
 	NodeType mNodeType;
-	CString mSemName;
+	Token mToken;
 };
 
 class RSyntaxParser
@@ -118,6 +119,7 @@ public:
 	//vector<RTreeNode*> mChildNodes;
 	vector<Token> mTokenList;
 	vector<ParseLog> mParseLog;
+	map<NodeType, CString> mNodeType2Str;
 	int mTokenPtr;
 	int mCurLine;
 	LexicalAnalyzer mLexicalAnalyzer;
@@ -197,5 +199,8 @@ public:
 	void ReleaseTree(RTreeNode* r);
 
 	void RecordLog(LogType type, int line, CString log);
+	void InitMap();
+	CString GetSyntaxTreeStr(CString lftstr, CString append, RTreeNode* r);
+	CString GetStrByLen(int len);
 };
 

@@ -64,6 +64,7 @@ void CSNLCompilerDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_SRC_EDIT, mSrcEdit);
 	DDX_Control(pDX, IDC_TOKEN_LIST, mListControl);
 	DDX_Control(pDX, IDC_SYNTAXLOG_LIST, mSyntaxLogList);
+	DDX_Control(pDX, IDC_SYNTAX_TREE_EDIT, mSyntaxTreeEdit);
 }
 
 BEGIN_MESSAGE_MAP(CSNLCompilerDlg, CDialogEx)
@@ -237,5 +238,10 @@ void CSNLCompilerDlg::OnBnClickedTokenButton()
 		}
 		
 		mSyntaxLogList.SetItemText(idx, 2, log.log);
+
+
 	}
+	CString s = parser.GetSyntaxTreeStr(_T(" "), _T(""), parser.mSytaxTree);
+	
+	mSyntaxTreeEdit.SetWindowTextW(s);
 }

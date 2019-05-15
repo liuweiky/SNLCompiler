@@ -36,4 +36,5 @@ public:
 	afx_msg void OnBnClickedTokenButton();
 	CListCtrl mListControl;
 	CListCtrl mSyntaxLogList;
+	CEdit mSyntaxTreeEdit;
 };
