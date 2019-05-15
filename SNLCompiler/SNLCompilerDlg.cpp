@@ -72,6 +72,7 @@ BEGIN_MESSAGE_MAP(CSNLCompilerDlg, CDialogEx)
 	ON_WM_PAINT()
 	ON_WM_QUERYDRAGICON()
 	ON_BN_CLICKED(IDC_TOKEN_BUTTON, &CSNLCompilerDlg::OnBnClickedTokenButton)
+	ON_BN_CLICKED(IDC_SYNTAX_PARSE_BUTTON, &CSNLCompilerDlg::OnBnClickedSyntaxParseButton)
 END_MESSAGE_MAP()
 
 
@@ -198,6 +199,7 @@ void CSNLCompilerDlg::OnBnClickedTokenButton()
 	la.getTokenList();
 	la.Lex2File();
 	mListControl.DeleteAllItems();
+	mLexErrorFlag = true;
 	for (int i = la.mTokenList.size() - 1; i >= 0; i--)
 	{
 		CString str = _T("");
@@ -207,41 +209,56 @@ void CSNLCompilerDlg::OnBnClickedTokenButton()
 		{
 			mListControl.SetItemText(idx, 1, _T("[ERROR] Unexpected symbol"));
 			mListControl.SetItemText(idx, 2, t.sem);
+			mLexErrorFlag = false;
 			continue;
 		}
 		mListControl.SetItemText(idx, 1, la.mLex2String[t.lex]);
 		if (!la.isReservedWord(t.sem) && !la.isSingleDelimiter(t.sem) && t.sem != ":=" && t.sem != "." && t.sem != "..")
 			mListControl.SetItemText(idx, 2, t.sem);
 	}
+}
 
+
+void CSNLCompilerDlg::OnBnClickedSyntaxParseButton()
+{
+	// TODO: 在此添加控件通知处理程序代码
+	LexicalAnalyzer la;
+	mSrcEdit.GetWindowTextW(la.mOrignalSrcCode);
+	//la.mOrignalSrcCode += "\0\0";
+	la.getTokenList();
+	la.Lex2File();
 	RSyntaxParser parser(la.mTokenList);
 	parser.Parse();
 	mSyntaxLogList.DeleteAllItems();
-	for (int i = parser.mParseLog.size() - 1; i >= 0; i--)
-	{
-		CString str = _T("");
-		ParseLog log = parser.mParseLog[i];
-		int idx = mSyntaxLogList.InsertItem(0, Utils::int2cstr(log.line));
-		switch (log.type)
+	mSyntaxTreeEdit.SetWindowText(_T(""));
+	if (mLexErrorFlag) {
+		for (int i = parser.mParseLog.size() - 1; i >= 0; i--)
 		{
-		case LogType::LERROR:
-			mSyntaxLogList.SetItemText(idx, 1, _T("ERROR"));
-			break;
-		case LogType::LDEBUG:
-			mSyntaxLogList.SetItemText(idx, 1, _T("DEBUG"));
-			break;
-		case LogType::LINFO:
-			mSyntaxLogList.SetItemText(idx, 1, _T("INFO"));
-			break;
-		default:
-			break;
+			CString str = _T("");
+			ParseLog log = parser.mParseLog[i];
+			int idx = mSyntaxLogList.InsertItem(0, Utils::int2cstr(log.line));
+			switch (log.type)
+			{
+			case LogType::LERROR:
+				mSyntaxLogList.SetItemText(idx, 1, _T("ERROR"));
+				break;
+			case LogType::LDEBUG:
+				mSyntaxLogList.SetItemText(idx, 1, _T("DEBUG"));
+				break;
+			case LogType::LINFO:
+				mSyntaxLogList.SetItemText(idx, 1, _T("INFO"));
+				break;
+			default:
+				break;
+			}
+
+			mSyntaxLogList.SetItemText(idx, 2, log.log);
+
+
 		}
-		
-		mSyntaxLogList.SetItemText(idx, 2, log.log);
-
-
+		CString s = parser.GetSyntaxTreeStr(_T(" "), _T(""), parser.mSytaxTree);
+		mSyntaxTreeEdit.SetWindowTextW(s);
 	}
-	CString s = parser.GetSyntaxTreeStr(_T(" "), _T(""), parser.mSytaxTree);
-	
-	mSyntaxTreeEdit.SetWindowTextW(s);
+	else
+		MessageBox(_T("Please correct the error"));
 }
