@@ -27,6 +27,7 @@ LexicalAnalyzer::LexicalAnalyzer()
 	mLex2String[LexType::SPACE] = "<SPACE>";
 	mLex2String[LexType::INTEGER] = "<INTEGER>";
 	mLex2String[LexType::ARRAY] = "<ARRAY>";
+	mLex2String[LexType::RECORD] = "<RECORD>";
 	mLex2String[LexType::OF] = "<OF>";
 	mLex2String[LexType::PROCEDURE] = "<PROCEDURE>";
 	mLex2String[LexType::SEMICOLON] = "<SEMICOLON>";
@@ -62,6 +63,7 @@ LexicalAnalyzer::LexicalAnalyzer()
 	mReservedWords[_T("integer")] = LexType::INTEGER;
 	mReservedWords[_T("char")] = LexType::CHARACTER;
 	mReservedWords[_T("array")] = LexType::ARRAY;
+	mReservedWords[_T("record")] = LexType::RECORD;
 	mReservedWords[_T("of")] = LexType::OF;
 	mReservedWords[_T("procedure")] = LexType::PROCEDURE;
 	mReservedWords[_T("var")] = LexType::VAR;
@@ -97,15 +99,16 @@ CString LexicalAnalyzer::getNextChar()
 
 void LexicalAnalyzer::ungetNextChar()
 {
-	if (mSrcPtr < mOrignalSrcCode.GetLength())
-		mSrcPtr--;
+	//if (mSrcPtr <= mOrignalSrcCode.GetLength())
+	mSrcPtr--;
 }
 
 void LexicalAnalyzer::getTokenList()
 {
 	CString str = _T("");
+	CString cur_char = _T("");
 S0:
-	CString cur_char = getNextChar();
+	cur_char = getNextChar();
 	if (cur_char == "")
 	{
 		Token t(mCurLine, LexType::LEXEOF, str + cur_char);
@@ -159,7 +162,8 @@ INID:
 			t.lex = mReservedWords[str];
 		mTokenList.push_back(t);
 		str = "";
-		ungetNextChar();
+		if (cur_char != _T(""))	// 若已经到达文件尾，则无需unget
+			ungetNextChar();
 		goto S0;
 	}
 
@@ -175,7 +179,8 @@ INNUM:
 		Token t(mCurLine, LexType::UINTEGER, str);
 		mTokenList.push_back(t);
 		str = "";
-		ungetNextChar();
+		if (cur_char != _T(""))	// 若已经到达文件尾，则无需unget
+			ungetNextChar();
 		goto S0;
 	}
 	else
@@ -305,7 +310,8 @@ INRANGE:
 		Token t(mCurLine, LexType::DOT, str);
 		mTokenList.push_back(t);
 		str = "";
-		ungetNextChar();
+		if (cur_char != _T(""))	// 若已经到达文件尾，则无需unget
+			ungetNextChar();
 		goto S0;
 	}
 

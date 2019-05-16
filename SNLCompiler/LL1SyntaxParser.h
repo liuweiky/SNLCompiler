@@ -21,10 +21,18 @@ public:
 	LL1SyntaxParser(vector<Token> tokens);
 	~LL1SyntaxParser();
 
+	void NextToken();
+
+	void Parse();
 	void InitMap();
 
-
 	map<NodeType, map<LexType, vector<StackItem>>> mLL1Map;
+	int mTokenPtr;
+
+	Token GetCurToken();
+	vector<ParseLog> mParseLog;
+	int mCurLine;
+	map<NodeType, CString> mNodeType2Str;
 
 	LexicalAnalyzer mLexicalAnalyzer;
 	vector<Token> mTokenList;

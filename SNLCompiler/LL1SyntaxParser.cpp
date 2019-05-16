@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "LL1SyntaxParser.h"
+#include <stack>
 
 
 LL1SyntaxParser::LL1SyntaxParser()
@@ -11,6 +12,9 @@ LL1SyntaxParser::LL1SyntaxParser()
 		if (mLexicalAnalyzer.mTokenList[i].lex != LexType::LEXERR)
 			mTokenList.push_back(mLexicalAnalyzer.mTokenList[i]);
 	}
+	mTokenPtr = 0;
+	mCurLine = 1;
+	InitMap();
 }
 
 LL1SyntaxParser::LL1SyntaxParser(vector<Token> tokens)
@@ -20,10 +24,108 @@ LL1SyntaxParser::LL1SyntaxParser(vector<Token> tokens)
 		if (tokens[i].lex != LexType::LEXERR)
 			mTokenList.push_back(tokens[i]);
 	}
+	mTokenPtr = 0;
+	mCurLine = 1;
+	InitMap();
 }
 
 LL1SyntaxParser::~LL1SyntaxParser()
 {
+}
+
+void LL1SyntaxParser::NextToken()
+{
+	if (mTokenPtr < mTokenList.size())
+	{
+		mTokenPtr++;
+		mCurLine = mTokenList[mTokenPtr].line;
+	}
+}
+
+Token LL1SyntaxParser::GetCurToken()
+{
+	if (mTokenPtr == mTokenList.size())
+	{
+		Token t;
+		t.line = mCurLine;
+		return t;
+	}
+	else
+		return mTokenList[mTokenPtr];
+}
+
+void LL1SyntaxParser::Parse()
+{
+	stack<StackItem> stk;
+	StackItem item(NodeType::Program, Token());
+
+	stk.push(item);
+	mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, Utils::FormatCString(_T("Program pushed!"))));
+
+	while (stk.size() != 0 || GetCurToken().lex != LexType::LEXEOF)
+	{
+
+		if (stk.size() != 0 && stk.top().nodeType == NodeType::EMPTY)
+		{
+			stk.pop();
+			continue;
+		}
+		if (stk.size() == 0)
+		{
+			mParseLog.push_back(ParseLog(mCurLine, LogType::LERROR, Utils::FormatCString(_T("Unexpeted token %s"), mLexicalAnalyzer.mLex2String[GetCurToken().lex])));
+			return;
+		}
+		else if (GetCurToken().lex == LexType::LEXEOF)
+		{
+			StackItem item = stk.top();
+			if (item.nodeType == NodeType::Terminal)
+				mParseLog.push_back(ParseLog(mCurLine, LogType::LERROR, Utils::FormatCString(_T("Missing %s"), mLexicalAnalyzer.mLex2String[item.token.lex])));
+			else
+				mParseLog.push_back(ParseLog(mCurLine, LogType::LERROR, Utils::FormatCString(_T("Missing %s"), mNodeType2Str[item.nodeType])));
+			return;
+		}
+
+		StackItem item = stk.top();
+		if (item.nodeType == NodeType::Terminal)
+		{
+			if (item.token.lex != GetCurToken().lex)
+			{
+				mParseLog.push_back(ParseLog(mCurLine, LogType::LERROR, Utils::FormatCString(_T("%s and %s couldn't be matched!"), mLexicalAnalyzer.mLex2String[item.token.lex], mLexicalAnalyzer.mLex2String[GetCurToken().lex])));
+				return;
+			}
+			else
+			{
+				mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, Utils::FormatCString(_T("%s and %s matched!"), mLexicalAnalyzer.mLex2String[item.token.lex], mLexicalAnalyzer.mLex2String[GetCurToken().lex])));
+				NextToken(); mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, Utils::FormatCString(_T("%s popped!"), mLexicalAnalyzer.mLex2String[stk.top().token.lex])));
+				stk.pop();
+}
+		}
+		else
+		{
+			if (mLL1Map.find(item.nodeType) == mLL1Map.end() || mLL1Map[item.nodeType].find(GetCurToken().lex) == mLL1Map[item.nodeType].end())
+			{
+				mParseLog.push_back(ParseLog(mCurLine, LogType::LERROR, Utils::FormatCString(_T("Unexpeted token %s"), mLexicalAnalyzer.mLex2String[GetCurToken().lex])));
+				return;
+			}
+			else
+			{
+				mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, Utils::FormatCString(_T("%s popped!"), mNodeType2Str[stk.top().nodeType])));
+				stk.pop();
+				vector<StackItem> items = mLL1Map[item.nodeType][GetCurToken().lex];
+				for (int i = items.size() - 1; i >= 0; i--)
+				{
+					stk.push(items[i]);
+					if (items[i].nodeType == NodeType::Terminal)
+						mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, Utils::FormatCString(_T("%s pushed!"), mLexicalAnalyzer.mLex2String[items[i].token.lex])));
+					else
+						mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, Utils::FormatCString(_T("%s pushed!"), mNodeType2Str[items[i].nodeType])));
+				}
+				//NextToken();
+			}
+		}
+	}
+	
+
 }
 
 void LL1SyntaxParser::InitMap()
@@ -39,7 +141,7 @@ void LL1SyntaxParser::InitMap()
 	mLL1Map[NodeType::TypeDec][LexType::VAR] = Get5();
 	mLL1Map[NodeType::TypeDec][LexType::PROCEDURE] = Get5();
 	mLL1Map[NodeType::TypeDec][LexType::BEGIN] = Get5();
-	mLL1Map[NodeType::TypeDeclaration][LexType::PROGRAM] = Get7();
+	mLL1Map[NodeType::TypeDeclaration][LexType::TYPE] = Get7();
 	mLL1Map[NodeType::TypeDecList][LexType::IDENTIFIER] = Get8();
 	mLL1Map[NodeType::TypeDecMore][LexType::VAR] = Get9();
 	mLL1Map[NodeType::TypeDecMore][LexType::PROCEDURE] = Get9();
@@ -86,9 +188,9 @@ void LL1SyntaxParser::InitMap()
 	mLL1Map[NodeType::VarIdList][LexType::IDENTIFIER] = Get36();
 	mLL1Map[NodeType::VarIdMore][LexType::SEMICOLON] = Get37();
 	mLL1Map[NodeType::VarIdMore][LexType::COMMA] = Get38();
-	mLL1Map[NodeType::ProcDecPart][LexType::PROCEDURE] = Get40();
-	mLL1Map[NodeType::ProcDecPart][LexType::BEGIN] = Get39();
-	mLL1Map[NodeType::ProcDec][LexType::PROCEDURE] = Get41();
+	mLL1Map[NodeType::ProcDec][LexType::PROCEDURE] = Get40();
+	mLL1Map[NodeType::ProcDec][LexType::BEGIN] = Get39();
+	mLL1Map[NodeType::ProcDeclaration][LexType::PROCEDURE] = Get41();
 	mLL1Map[NodeType::ProcDecMore][LexType::PROCEDURE] = Get43();
 	mLL1Map[NodeType::ProcDecMore][LexType::BEGIN] = Get42();
 	mLL1Map[NodeType::ParamList][LexType::INTEGER] = Get46();
@@ -128,6 +230,7 @@ void LL1SyntaxParser::InitMap()
 	mLL1Map[NodeType::StmList][LexType::WRITE] = Get58();
 	mLL1Map[NodeType::StmList][LexType::RETURN] = Get58();
 	mLL1Map[NodeType::StmList][LexType::IDENTIFIER] = Get58();
+	mLL1Map[NodeType::StmMore][LexType::END] = Get59();
 	mLL1Map[NodeType::StmMore][LexType::RECORD] = Get59();
 	mLL1Map[NodeType::StmMore][LexType::ELSE] = Get59();
 	mLL1Map[NodeType::StmMore][LexType::FI] = Get59();
@@ -146,7 +249,7 @@ void LL1SyntaxParser::InitMap()
 	mLL1Map[NodeType::AssignmentRest][LexType::DOT] = Get69();
 	mLL1Map[NodeType::AssignmentRest][LexType::ASSIGN] = Get69();
 	mLL1Map[NodeType::AssignmentRest][LexType::LSQUAREBRACKET] = Get69();
-	mLL1Map[NodeType::ConditionalStm][LexType::BEGIN] = Get70();
+	mLL1Map[NodeType::ConditionalStm][LexType::IF] = Get70();
 	mLL1Map[NodeType::LoopStm][LexType::WHILE] = Get71();
 	mLL1Map[NodeType::InputStm][LexType::READ] = Get72();
 	mLL1Map[NodeType::OutputStm][LexType::WRITE] = Get74();
@@ -185,7 +288,7 @@ void LL1SyntaxParser::InitMap()
 
 	mLL1Map[NodeType::Term][LexType::UINTEGER] = Get86();
 	mLL1Map[NodeType::Term][LexType::IDENTIFIER] = Get86();
-	mLL1Map[NodeType::Term][LexType::RPARENTHESIS] = Get86();
+	mLL1Map[NodeType::Term][LexType::LPARENTHESIS] = Get86();
 
 	mLL1Map[NodeType::OtherFactor][LexType::END] = Get87();
 	mLL1Map[NodeType::OtherFactor][LexType::THEN] = Get87();
@@ -256,6 +359,71 @@ void LL1SyntaxParser::InitMap()
 	mLL1Map[NodeType::MultOp][LexType::MULTIPLY] = Get103();
 	mLL1Map[NodeType::MultOp][LexType::DIVIDE] = Get104();
 
+	mNodeType2Str[NodeType::Program] = _T("Program");
+	mNodeType2Str[NodeType::ProgramHead] = _T("ProgramHead");
+	mNodeType2Str[NodeType::ProgramName] = _T("ProgramName");
+	mNodeType2Str[NodeType::ProgramBody] = _T("ProgramBody");
+	mNodeType2Str[NodeType::StmList] = _T("StmList");
+	mNodeType2Str[NodeType::Stm] = _T("Stm");
+	mNodeType2Str[NodeType::StmMore] = _T("StmMore");
+	mNodeType2Str[NodeType::DeclarePart] = _T("DeclarePart");
+	mNodeType2Str[NodeType::TypeDec] = _T("TypeDec");
+	mNodeType2Str[NodeType::EMPTY] = _T("EMPTY");
+	mNodeType2Str[NodeType::TypeDecList] = _T("TypeDecList");
+	mNodeType2Str[NodeType::TypeId] = _T("TypeId");
+	mNodeType2Str[NodeType::TypeDef] = _T("TypeDef");
+	mNodeType2Str[NodeType::TypeDecMore] = _T("TypeDecMore");
+	mNodeType2Str[NodeType::BaseType] = _T("BaseType");
+	mNodeType2Str[NodeType::StructureType] = _T("StructureType");
+	mNodeType2Str[NodeType::ArrayType] = _T("ArrayType");
+	mNodeType2Str[NodeType::RecType] = _T("RecType");
+	mNodeType2Str[NodeType::FieldDecList] = _T("FieldDecList");
+	mNodeType2Str[NodeType::IdList] = _T("IdList");
+	mNodeType2Str[NodeType::FieldDecMore] = _T("FieldDecMore");
+	mNodeType2Str[NodeType::IdMore] = _T("IdMore");
+	mNodeType2Str[NodeType::VarDec] = _T("VarDec");
+	mNodeType2Str[NodeType::VarDeclaration] = _T("VarDeclaration");
+	mNodeType2Str[NodeType::VarDecList] = _T("VarDecList");
+	mNodeType2Str[NodeType::VarIdList] = _T("VarIdList");
+	mNodeType2Str[NodeType::VarIdMore] = _T("VarIdMore");
+	mNodeType2Str[NodeType::VarDecMore] = _T("VarDecMore");
+	mNodeType2Str[NodeType::ProcDec] = _T("ProcDec");
+	mNodeType2Str[NodeType::ProcDeclaration] = _T("ProcDeclaration");
+	mNodeType2Str[NodeType::ProcDecMore] = _T("ProcDecMore");
+	mNodeType2Str[NodeType::ParamList] = _T("ParamList");
+	mNodeType2Str[NodeType::ParamDecList] = _T("ParamDecList");
+	mNodeType2Str[NodeType::Param] = _T("Param");
+	mNodeType2Str[NodeType::ParamMore] = _T("ParamMore");
+	mNodeType2Str[NodeType::FormList] = _T("FormList");
+	mNodeType2Str[NodeType::FidMore] = _T("FidMore");
+	mNodeType2Str[NodeType::ProcDecPart] = _T("ProcDecPart");
+	mNodeType2Str[NodeType::ProcBody] = _T("ProcBody");
+	mNodeType2Str[NodeType::AssCall] = _T("AssCall");
+	mNodeType2Str[NodeType::AssignmentRest] = _T("AssignmentRest");
+	mNodeType2Str[NodeType::ConditionalStm] = _T("ConditionalStm");
+	mNodeType2Str[NodeType::LoopStm] = _T("LoopStm");
+	mNodeType2Str[NodeType::InputStm] = _T("InputStm");
+	mNodeType2Str[NodeType::OutputStm] = _T("OutputStm");
+	mNodeType2Str[NodeType::ReturnStm] = _T("ReturnStm");
+	mNodeType2Str[NodeType::CallStmRest] = _T("CallStmRest");
+	mNodeType2Str[NodeType::ActParamList] = _T("ActParamList");
+	mNodeType2Str[NodeType::ActParamMore] = _T("ActParamMore");
+	mNodeType2Str[NodeType::Exp] = _T("Exp");
+	mNodeType2Str[NodeType::OtherTerm] = _T("OtherTerm");
+	mNodeType2Str[NodeType::Term] = _T("Term");
+	mNodeType2Str[NodeType::OtherFactor] = _T("OtherFactor");
+	mNodeType2Str[NodeType::Factor] = _T("Factor");
+	mNodeType2Str[NodeType::Variable] = _T("Variable");
+	mNodeType2Str[NodeType::VariMore] = _T("VariMore");
+	mNodeType2Str[NodeType::FieldVar] = _T("FieldVar");
+	mNodeType2Str[NodeType::FieldVarMore] = _T("FieldVarMore");
+	mNodeType2Str[NodeType::RelExp] = _T("RelExp");
+	mNodeType2Str[NodeType::OtherRelE] = _T("OtherRelE");
+	mNodeType2Str[NodeType::CmpOp] = _T("CmpOp");
+	mNodeType2Str[NodeType::AddOp] = _T("AddOp");
+	mNodeType2Str[NodeType::MultOp] = _T("MultOp");
+	mNodeType2Str[NodeType::Terminal] = _T("Terminal");
+
 }
 
 vector<StackItem> LL1SyntaxParser::Get1()
@@ -264,6 +432,7 @@ vector<StackItem> LL1SyntaxParser::Get1()
 	item.push_back(StackItem(NodeType::ProgramHead, Token()));
 	item.push_back(StackItem(NodeType::DeclarePart, Token()));
 	item.push_back(StackItem(NodeType::ProgramBody, Token()));
+	item.push_back(StackItem(NodeType::Terminal, Token(-1, LexType::DOT, _T(""))));
 	return item;
 }
 
@@ -301,7 +470,7 @@ vector<StackItem> LL1SyntaxParser::Get5()
 vector<StackItem> LL1SyntaxParser::Get6()
 {
 	vector<StackItem> item;
-	item.push_back(StackItem(NodeType::TypeDec, Token()));
+	item.push_back(StackItem(NodeType::TypeDeclaration, Token()));
 	return item;
 }
 
@@ -484,7 +653,7 @@ vector<StackItem> LL1SyntaxParser::Get30()
 vector<StackItem> LL1SyntaxParser::Get31()
 {
 	vector<StackItem> item;
-	item.push_back(StackItem(NodeType::VarDec, Token()));
+	item.push_back(StackItem(NodeType::VarDeclaration, Token()));
 	return item;
 }
 
@@ -553,7 +722,7 @@ vector<StackItem> LL1SyntaxParser::Get39()
 vector<StackItem> LL1SyntaxParser::Get40()
 {
 	vector<StackItem> item;
-	item.push_back(StackItem(NodeType::ProcDec, Token()));
+	item.push_back(StackItem(NodeType::ProcDeclaration, Token()));
 	return item;
 }
 

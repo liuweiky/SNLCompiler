@@ -2397,7 +2397,7 @@ void RSyntaxParser::InitMap()
 	mNodeType2Str[NodeType::ParamMore] = _T("ParamMore");
 	mNodeType2Str[NodeType::FormList] = _T("FormList");
 	mNodeType2Str[NodeType::FidMore] = _T("FidMore");
-	mNodeType2Str[NodeType::ProcDecPart] = _T("ProcDecPart");
+	//mNodeType2Str[NodeType::ProcDecPart] = _T("ProcDecPart");
 	mNodeType2Str[NodeType::ProcBody] = _T("ProcBody");
 	mNodeType2Str[NodeType::AssCall] = _T("AssCall");
 	mNodeType2Str[NodeType::AssignmentRest] = _T("AssignmentRest");

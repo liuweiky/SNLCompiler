@@ -9,6 +9,7 @@
 #include "afxdialogex.h"
 #include "LexicalAnalyzer.h"
 #include "RSyntaxParser.h"
+#include "LL1SyntaxParser.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -227,7 +228,7 @@ void CSNLCompilerDlg::OnBnClickedSyntaxParseButton()
 	//la.mOrignalSrcCode += "\0\0";
 	la.getTokenList();
 	la.Lex2File();
-	RSyntaxParser parser(la.mTokenList);
+	LL1SyntaxParser parser(la.mTokenList);
 	parser.Parse();
 	mSyntaxLogList.DeleteAllItems();
 	mSyntaxTreeEdit.SetWindowText(_T(""));
@@ -256,8 +257,8 @@ void CSNLCompilerDlg::OnBnClickedSyntaxParseButton()
 
 
 		}
-		CString s = parser.GetSyntaxTreeStr(_T(" "), _T(""), parser.mSytaxTree);
-		mSyntaxTreeEdit.SetWindowTextW(s);
+		//CString s = parser.GetSyntaxTreeStr(_T(" "), _T(""), parser.mSytaxTree);
+		//mSyntaxTreeEdit.SetWindowTextW(s);
 	}
 	else
 		MessageBox(_T("Please correct the error"));
