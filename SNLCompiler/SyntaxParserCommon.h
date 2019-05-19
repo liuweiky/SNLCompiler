@@ -19,7 +19,7 @@ enum NodeType
 	StmMore,
 	DeclarePart,
 	TypeDec,		// Type Declare 标志块，类型声明
-	EMPTY,
+	//EMPTY,
 	TypeDecList,
 	TypeId,
 	TypeDef,

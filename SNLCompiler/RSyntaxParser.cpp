@@ -135,8 +135,11 @@ RTreeNode* RSyntaxParser::ProgramHead()
 	RTreeNode* ph = new RTreeNode();
 	ph->mNodeType = NodeType::ProgramHead;
 	ph->mLine = mCurLine;
-	if (!Match(LexType::PROGRAM))
+
+	Token t = GetCurToken();
+	if (Match(LexType::PROGRAM))
 	{
+		ph->mChilds.push_back(GetMatchedTerminal(t));
 		//LogUtil::Error(Utils::FormatCString(_T("Missing <PROGRAM> near line %d"), mCurLine));
 	}
 
@@ -168,11 +171,7 @@ RTreeNode* RSyntaxParser::ProgramName()
 
 	if (Match(LexType::IDENTIFIER))
 	{
-		RTreeNode* id = new RTreeNode();
-		id->mNodeType = NodeType::Terminal;
-		id->mLine = mCurLine;
-		id->mToken = t;
-		pn->mChilds.push_back(id);
+		pn->mChilds.push_back(GetMatchedTerminal(t));
 	}
 	else
 	{
@@ -238,9 +237,7 @@ RTreeNode* RSyntaxParser::ProcDec()
 
 	if (GetCurToken().lex == LexType::BEGIN)	// 向前看 1 个
 	{
-		RTreeNode* n = new RTreeNode();
-		n->mNodeType = NodeType::EMPTY;	//空产生式
-		n->mLine = mCurLine;
+		RTreeNode* n = GetMatchedTerminal(Token(LexType::EPSILON));
 		pd->mChilds.push_back(n);
 		mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("[ProcDec] is EPSILON")));
 		LogUtil::Info(Utils::FormatCString(_T("ProcDec is EPSILON near line %d"), mCurLine));
@@ -330,9 +327,7 @@ RTreeNode* RSyntaxParser::ProcDecMore()
 
 	if (GetCurToken().lex == LexType::BEGIN)
 	{
-		RTreeNode* n = new RTreeNode();
-		n->mNodeType = NodeType::EMPTY;	//空产生式
-		n->mLine = mCurLine;
+		RTreeNode* n = GetMatchedTerminal(Token(LexType::EPSILON));
 		pdm->mChilds.push_back(n);
 		mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("[ProcDecMore] is EPSILON")));
 		LogUtil::Info(Utils::FormatCString(_T("ProcDecMore is EPSILON near line %d"), mCurLine));
@@ -396,9 +391,7 @@ RTreeNode* RSyntaxParser::ParamList()
 
 	if (GetCurToken().lex == LexType::RPARENTHESIS)	// 向前看 1 个
 	{
-		RTreeNode* n = new RTreeNode();
-		n->mNodeType = NodeType::EMPTY;	//空产生式
-		n->mLine = mCurLine;
+		RTreeNode* n = GetMatchedTerminal(Token(LexType::EPSILON));
 		pl->mChilds.push_back(n);
 		mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("[ParamList] is EPSILON")));
 		LogUtil::Info(Utils::FormatCString(_T("ParamList is EPSILON near line %d"), mCurLine));
@@ -452,9 +445,7 @@ RTreeNode* RSyntaxParser::ParamMore()
 	
 	if (GetCurToken().lex == LexType::RPARENTHESIS)	// 向前看 1 个
 	{
-		RTreeNode* n = new RTreeNode();
-		n->mNodeType = NodeType::EMPTY;	//空产生式
-		n->mLine = mCurLine;
+		RTreeNode* n = GetMatchedTerminal(Token(LexType::EPSILON));
 		pm->mChilds.push_back(n);
 		mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("[ParamMore] is EPSILON")));
 		LogUtil::Info(Utils::FormatCString(_T("ParamMore is EPSILON near line %d"), mCurLine));
@@ -558,9 +549,7 @@ RTreeNode* RSyntaxParser::FidMore()
 
 	if (GetCurToken().lex == LexType::SEMICOLON || GetCurToken().lex == LexType::RPARENTHESIS)	// 向前看 1 个
 	{
-		RTreeNode* n = new RTreeNode();
-		n->mNodeType = NodeType::EMPTY;	//空产生式
-		n->mLine = mCurLine;
+		RTreeNode* n = GetMatchedTerminal(Token(LexType::EPSILON));
 		fm->mChilds.push_back(n);
 		mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("[FidMore] is EPSILON")));
 		LogUtil::Info(Utils::FormatCString(_T("FidMore is EPSILON near line %d"), mCurLine));
@@ -599,9 +588,7 @@ RTreeNode* RSyntaxParser::VarDec()
 	
 	if (GetCurToken().lex == LexType::PROCEDURE || GetCurToken().lex == LexType::BEGIN)	// 向前看 1 个
 	{
-		RTreeNode* n = new RTreeNode();
-		n->mNodeType = NodeType::EMPTY;	//空产生式
-		n->mLine = mCurLine;
+		RTreeNode* n = GetMatchedTerminal(Token(LexType::EPSILON));
 		vd->mChilds.push_back(n);
 		mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("[VarDec] is EPSILON")));
 		LogUtil::Info(Utils::FormatCString(_T("VarDec is EPSILON near line %d"), mCurLine));
@@ -696,9 +683,7 @@ RTreeNode* RSyntaxParser::VarIdMore()
 
 	if (GetCurToken().lex == LexType::SEMICOLON)	// 向前看 1 个
 	{
-		RTreeNode* n = new RTreeNode();
-		n->mNodeType = NodeType::EMPTY;	//空产生式
-		n->mLine = mCurLine;
+		RTreeNode* n = GetMatchedTerminal(Token(LexType::EPSILON));
 		vim->mChilds.push_back(n);
 		mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("[VarIdMore] is EPSILON")));
 		LogUtil::Info(Utils::FormatCString(_T("VarIdMore is EPSILON near line %d"), mCurLine));
@@ -760,9 +745,7 @@ RTreeNode* RSyntaxParser::VarDecMore()
 
 	if (GetCurToken().lex == LexType::PROCEDURE || GetCurToken().lex == LexType::BEGIN)	// 向前看 1 个
 	{
-		RTreeNode* n = new RTreeNode();
-		n->mNodeType = NodeType::EMPTY;	//空产生式
-		n->mLine = mCurLine;
+		RTreeNode* n = GetMatchedTerminal(Token(LexType::EPSILON));
 		vdm->mChilds.push_back(n);
 		mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("[VarDecMore] is EPSILON")));
 		LogUtil::Info(Utils::FormatCString(_T("VarDecMore is EPSILON near line %d"), mCurLine));
@@ -803,9 +786,7 @@ RTreeNode* RSyntaxParser::TypeDec()
 	}
 	else if (GetCurToken().lex == LexType::VAR || GetCurToken().lex == LexType::PROCEDURE || GetCurToken().lex == LexType::BEGIN)
 	{
-		RTreeNode* n = new RTreeNode();
-		n->mNodeType = NodeType::EMPTY;	//空产生式
-		n->mLine = mCurLine;
+		RTreeNode* n = GetMatchedTerminal(Token(LexType::EPSILON));
 		td->mChilds.push_back(n);
 		mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("[TypeDec] is EPSILON")));
 		LogUtil::Info(Utils::FormatCString(_T("TypeDec is EPSILON near line %d"), mCurLine));
@@ -1218,9 +1199,7 @@ RTreeNode* RSyntaxParser::IdMore()
 
 	if (GetCurToken().lex == LexType::SEMICOLON)	// 向前看 1 个
 	{
-		RTreeNode* n = new RTreeNode();
-		n->mNodeType = NodeType::EMPTY;	//空产生式
-		n->mLine = mCurLine;
+		RTreeNode* n = GetMatchedTerminal(Token(LexType::EPSILON));
 		idm->mChilds.push_back(n);
 		mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("[IdMore] is EPSILON")));
 		LogUtil::Info(Utils::FormatCString(_T("IdMore is EPSILON near line %d"), mCurLine));
@@ -1254,9 +1233,7 @@ RTreeNode* RSyntaxParser::FieldDecMore()
 
 	if (GetCurToken().lex == LexType::END)	// 向前看 1 个
 	{
-		RTreeNode* n = new RTreeNode();
-		n->mNodeType = NodeType::EMPTY;	//空产生式
-		n->mLine = mCurLine;
+		RTreeNode* n = GetMatchedTerminal(Token(LexType::EPSILON));
 		fdm->mChilds.push_back(n);
 		mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("[FieldDecMore] is EPSILON")));
 		LogUtil::Info(Utils::FormatCString(_T("FieldDecMore is EPSILON near line %d"), mCurLine));
@@ -1291,9 +1268,7 @@ RTreeNode* RSyntaxParser::TypeDecMore()
 
 	if (GetCurToken().lex == LexType::VAR || GetCurToken().lex == LexType::PROCEDURE || GetCurToken().lex == LexType::BEGIN)	// 向前看 1 个
 	{
-		RTreeNode* n = new RTreeNode();
-		n->mNodeType = NodeType::EMPTY;	//空产生式
-		n->mLine = mCurLine;
+		RTreeNode* n = GetMatchedTerminal(Token(LexType::EPSILON));
 		tdm->mChilds.push_back(n);
 		mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("[TypeDecMore] is EPSILON")));
 		LogUtil::Info(Utils::FormatCString(_T("TypeDecMore is EPSILON near line %d"), mCurLine));
@@ -1347,9 +1322,7 @@ RTreeNode* RSyntaxParser::StmMore()
 		GetCurToken().lex == LexType::END || GetCurToken().lex == LexType::ENDWHILE
 		|| GetCurToken().lex == LexType::ELSE || GetCurToken().lex == LexType::FI)	// 向前看 1 个
 	{
-		RTreeNode* n = new RTreeNode();
-		n->mNodeType = NodeType::EMPTY;	//空产生式
-		n->mLine = mCurLine;
+		RTreeNode* n = GetMatchedTerminal(Token(LexType::EPSILON));
 		sm->mChilds.push_back(n);
 		mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("[StmMore] is EPSILON")));
 		LogUtil::Info(Utils::FormatCString(_T("StmMore is EPSILON near line %d"), mCurLine));
@@ -1720,9 +1693,7 @@ RTreeNode* RSyntaxParser::ActParamList()
 
 	if (GetCurToken().lex == LexType::RPARENTHESIS)	// 向前看 1 个
 	{
-		RTreeNode* n = new RTreeNode();
-		n->mNodeType = NodeType::EMPTY;	//空产生式
-		n->mLine = mCurLine;
+		RTreeNode* n = GetMatchedTerminal(Token(LexType::EPSILON));
 		apl->mChilds.push_back(n);
 		mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("[ActParamList] is EPSILON")));
 		LogUtil::Info(Utils::FormatCString(_T("ActParamList is EPSILON near line %d"), mCurLine));
@@ -1757,9 +1728,7 @@ RTreeNode* RSyntaxParser::ActParamMore()
 
 	if (GetCurToken().lex == LexType::RPARENTHESIS)	// 向前看 1 个
 	{
-		RTreeNode* n = new RTreeNode();
-		n->mNodeType = NodeType::EMPTY;	//空产生式
-		n->mLine = mCurLine;
+		RTreeNode* n = GetMatchedTerminal(Token(LexType::EPSILON));
 		apm->mChilds.push_back(n);
 		mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("[ActParamMore] is EPSILON")));
 		LogUtil::Info(Utils::FormatCString(_T("ActParamMore is EPSILON near line %d"), mCurLine));
@@ -1853,9 +1822,7 @@ RTreeNode* RSyntaxParser::OtherTerm()
 		|| GetCurToken().lex == LexType::RPARENTHESIS || GetCurToken().lex == LexType::END
 		|| GetCurToken().lex == LexType::SEMICOLON || GetCurToken().lex == LexType::COMMA)	// 向前看 1 个
 	{
-		RTreeNode* n = new RTreeNode();
-		n->mNodeType = NodeType::EMPTY;	//空产生式
-		n->mLine = mCurLine;
+		RTreeNode* n = GetMatchedTerminal(Token(LexType::EPSILON));
 		ot->mChilds.push_back(n);
 		mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("[OtherTerm] is EPSILON")));
 		LogUtil::Info(Utils::FormatCString(_T("OtherTerm is EPSILON near line %d"), mCurLine));
@@ -1963,9 +1930,7 @@ RTreeNode* RSyntaxParser::OtherFactor()
 		|| GetCurToken().lex == LexType::RPARENTHESIS || GetCurToken().lex == LexType::END
 		|| GetCurToken().lex == LexType::SEMICOLON || GetCurToken().lex == LexType::COMMA)	// 向前看 1 个
 	{
-		RTreeNode* n = new RTreeNode();
-		n->mNodeType = NodeType::EMPTY;	//空产生式
-		n->mLine = mCurLine;
+		RTreeNode* n = GetMatchedTerminal(Token(LexType::EPSILON));
 		of->mChilds.push_back(n);
 		mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("[OtherFactor] is EPSILON")));
 		LogUtil::Info(Utils::FormatCString(_T("OtherFactor is EPSILON near line %d"), mCurLine));
@@ -2030,9 +1995,7 @@ RTreeNode* RSyntaxParser::VariMore()
 		|| GetCurToken().lex == LexType::SEMICOLON || GetCurToken().lex == LexType::COMMA
 		|| GetCurToken().lex == LexType::RSQUAREBRACKET)	// 向前看 1 个
 	{
-		RTreeNode* n = new RTreeNode();
-		n->mNodeType = NodeType::EMPTY;	//空产生式
-		n->mLine = mCurLine;
+		RTreeNode* n = GetMatchedTerminal(Token(LexType::EPSILON));
 		vm->mChilds.push_back(n);
 		mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("[VariMore] is EPSILON")));
 		LogUtil::Info(Utils::FormatCString(_T("VariMore is EPSILON near line %d"), mCurLine));
@@ -2115,9 +2078,7 @@ RTreeNode* RSyntaxParser::FieldVarMore()
 		|| GetCurToken().lex == LexType::RPARENTHESIS || GetCurToken().lex == LexType::END
 		|| GetCurToken().lex == LexType::SEMICOLON || GetCurToken().lex == LexType::COMMA)	// 向前看 1 个
 	{
-		RTreeNode* n = new RTreeNode();
-		n->mNodeType = NodeType::EMPTY;	//空产生式
-		n->mLine = mCurLine;
+		RTreeNode* n = GetMatchedTerminal(Token(LexType::EPSILON));
 		fvm->mChilds.push_back(n);
 		mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("[FieldVarMore] is EPSILON")));
 		LogUtil::Info(Utils::FormatCString(_T("FieldVarMore is EPSILON near line %d"), mCurLine));
@@ -2369,7 +2330,7 @@ void RSyntaxParser::InitMap()
 	mNodeType2Str[NodeType::StmMore] = _T("StmMore");
 	mNodeType2Str[NodeType::DeclarePart] = _T("DeclarePart");
 	mNodeType2Str[NodeType::TypeDec] = _T("TypeDec");
-	mNodeType2Str[NodeType::EMPTY] = _T("EMPTY");
+	//mNodeType2Str[NodeType::EMPTY] = _T("EMPTY");
 	mNodeType2Str[NodeType::TypeDecList] = _T("TypeDecList");
 	mNodeType2Str[NodeType::TypeId] = _T("TypeId");
 	mNodeType2Str[NodeType::TypeDef] = _T("TypeDef");

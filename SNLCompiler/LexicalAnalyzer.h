@@ -52,11 +52,13 @@ enum LexType
 	UNDERANGE,		// ..
 	DOT,			// .
 	RETURN,
+	EPSILON,
 	LEXERR			// Not a lex element
 };
 
 struct Token
 {
+	Token(LexType le) : lex(le){ line = -1; sem = ""; }
 	Token(int li, LexType le, CString se) : line(li), lex(le), sem(se)
 	{
 		/*string s = "";
@@ -86,6 +88,7 @@ public:
 	int mSrcPtr, mCurLine;
 
 	map<LexType, CString> mLex2String;
+	map<CString, LexType> mString2Lex;
 	map<CString, LexType> mReservedWords;
 
 	void Lex2File();
