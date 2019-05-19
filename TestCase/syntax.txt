@@ -1,3 +1,4 @@
+//在此定义文法产生式，使用“//”表示注释。
 //总程序
 1 Program ::= ProgramHead DeclarePart ProgramBody <DOT>
 //程序头

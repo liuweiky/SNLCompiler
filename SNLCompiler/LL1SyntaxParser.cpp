@@ -56,6 +56,7 @@ Token LL1SyntaxParser::GetCurToken()
 
 void LL1SyntaxParser::ReadProuctions()
 {
+	// 读取文法产生式，并转换为内部表示
 	CStdioFile infile(PRODUCTION_FILENAME, CFile::modeRead, NULL);
 
 	CString line;
@@ -94,7 +95,7 @@ void LL1SyntaxParser::ReadProuctions()
 			{
 				if (mStr2NodeType.find(sp2[i]) == mStr2NodeType.end())
 				{
-					// ERR
+					mParseLog.push_back(ParseLog(-1, LogType::LERROR, Utils::FormatCString(_T("Unrecognized symbol %s in syntax file"), sp2[i])));
 				}
 				item.SetNodeType(mStr2NodeType[sp2[i]]);
 			}
@@ -202,6 +203,7 @@ void LL1SyntaxParser::GetFollowSet()
 		{
 			for (int j = 0; j < mProductions[i].mRights.size(); j++)
 			{
+				// A->xBy
 				if (j == mProductions[i].mRights.size() - 1 && mProductions[i].mRights[j].nodeType != NodeType::Terminal)
 				{
 					// 在产生式右部末尾，A->aB<EPS>
@@ -216,6 +218,7 @@ void LL1SyntaxParser::GetFollowSet()
 				set<SyntaxItem> firsty = GetSyntaxListFirst(vector<SyntaxItem>(mProductions[i].mRights.begin() + j + 1, mProductions[i].mRights.end()));
 				if (firsty.find(EPS_ITEM) != firsty.end())
 				{
+					// firsty 包含 EPS，Follow(B) = Follow(B) + firsty - {EPS} + Follow(A)
 					firsty.erase(EPS_ITEM);
 					prev_sz = mFollowSet[mProductions[i].mRights[j]].size();
 					mFollowSet[mProductions[i].mRights[j]].insert(firsty.begin(), firsty.end());
@@ -225,25 +228,12 @@ void LL1SyntaxParser::GetFollowSet()
 				}
 				else
 				{
+					// firsty 不包含 EPS，Follow(B) = Follow(B) + firsty
 					prev_sz = mFollowSet[mProductions[i].mRights[j]].size();
 					mFollowSet[mProductions[i].mRights[j]].insert(firsty.begin(), firsty.end());
 					if (stop)
 						stop = prev_sz == mFollowSet[mProductions[i].mRights[j]].size();
 				}
-
-				/*if (firsty.find(EPS_ITEM) != firsty.end())
-				{
-					prev_sz = mFollowSet[mProductions[i].mRights[j]].size();
-					mFollowSet[mProductions[i].mRights[j]].insert(mFollowSet[mProductions[i].mLeft].begin(), mFollowSet[mProductions[i].mLeft].end());
-					if (stop)
-						stop = prev_sz == mFollowSet[mProductions[i].mRights[j]].size();
-				}
-
-				firsty.erase(EPS_ITEM);
-				prev_sz = mFollowSet[mProductions[i].mRights[j]].size();
-				mFollowSet[mProductions[i].mRights[j]].insert(firsty.begin(), firsty.end());
-				if (stop)
-					stop = prev_sz == mFollowSet[mProductions[i].mRights[j]].size();*/
 			}
 		}
 	}

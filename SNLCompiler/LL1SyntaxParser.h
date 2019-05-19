@@ -32,6 +32,7 @@ struct SyntaxItem
 	SyntaxItem(NodeType n, LexType t): nodeType(n), token(t){}
 	bool operator < (const SyntaxItem& item) const
 	{
+		// 散列函数
 		return nodeType * 100000 + token < item.nodeType * 100000 + item.token;
 	}
 	NodeType nodeType;
@@ -55,38 +56,39 @@ public:
 	~LL1SyntaxParser();
 
 	void NextToken();
-
-	void Parse();
-	void InitMap();
-
-	map<NodeType, map<LexType, vector<SyntaxItem>>> mLL1Map;
-	int mTokenPtr;
-
 	Token GetCurToken();
-	vector<ParseLog> mParseLog;
+
+	void InitMap();
+	void ReadProuctions();
+	vector<CString> SplitString(CString str, CString pattern);		// 读取产生式文件时用于分词
+
+	set<SyntaxItem> GetSyntaxListFirst(vector<SyntaxItem> items);
+	void GetFirstSet();
+	void GetFollowSet();
+	void GetPredictSet();
+
+	void Parse();	// LL1 驱动程序
+
+	int mTokenPtr;
 	int mCurLine;
-	map<NodeType, CString> mNodeType2Str;
-	map<CString, NodeType> mStr2NodeType;
 
 	LexicalAnalyzer mLexicalAnalyzer;
 	vector<Token> mTokenList;
 
-	vector<Production> mProductions;
-	map<int, vector<SyntaxItem>> mId2Rights;
-	void ReadProuctions();
-	vector<CString> SplitString(CString str, CString pattern);
+	vector<ParseLog> mParseLog;
+	map<NodeType, CString> mNodeType2Str;
+	map<CString, NodeType> mStr2NodeType;
 
-	map<SyntaxItem, set<SyntaxItem>> mFirstSet;
-	map<SyntaxItem, set<SyntaxItem>> mFollowSet;
-	map<int, set<SyntaxItem>> mPredictSet;
-	
-	void GetFirstSet();
-	void GetFollowSet();
-	void GetPredictSet();
-	set<SyntaxItem> GetSyntaxListFirst(vector<SyntaxItem> items);
-	
-	set<SyntaxItem> mNonTerminals;
-	set<SyntaxItem> mTerminals;
+	set<SyntaxItem> mNonTerminals;		// 非终极符
+	set<SyntaxItem> mTerminals;			// 终极符
 	SyntaxItem mBeginSyntax;
+
+	vector<Production> mProductions;							// 产生式
+	map<int, vector<SyntaxItem>> mId2Rights;					// 根据产生式 id 编号获取产生式右部
+	map<NodeType, map<LexType, vector<SyntaxItem>>> mLL1Map;	// LL1 状态转换表
+
+	map<SyntaxItem, set<SyntaxItem>> mFirstSet;		// First 集
+	map<SyntaxItem, set<SyntaxItem>> mFollowSet;	// Follow 集
+	map<int, set<SyntaxItem>> mPredictSet;			// Predict 集
 };
 
