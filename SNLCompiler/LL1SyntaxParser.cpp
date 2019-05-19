@@ -367,7 +367,6 @@ void LL1SyntaxParser::InitMap()
 	mNodeType2Str[NodeType::StmMore] = _T("StmMore");
 	mNodeType2Str[NodeType::DeclarePart] = _T("DeclarePart");
 	mNodeType2Str[NodeType::TypeDec] = _T("TypeDec");
-	//mNodeType2Str[NodeType::EMPTY] = _T("EMPTY");
 	mNodeType2Str[NodeType::TypeDecList] = _T("TypeDecList");
 	mNodeType2Str[NodeType::TypeId] = _T("TypeId");
 	mNodeType2Str[NodeType::TypeDef] = _T("TypeDef");

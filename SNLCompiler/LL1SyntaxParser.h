@@ -8,7 +8,7 @@
 
 #define STR_EPS CString(_T("<EPSILON>"))
 #define EPS_ITEM SyntaxItem(LexType::EPSILON)
-#define PRODUCTION_FILENAME _T("../TestCase/syntax.txt")
+#define PRODUCTION_FILENAME _T("../TestCase/SNL_Core/syntax_list.txt")
 
 using namespace std;
 

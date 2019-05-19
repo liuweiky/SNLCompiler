@@ -3,7 +3,7 @@
 
 LexicalAnalyzer::LexicalAnalyzer()
 {
-	CFile infile(_T("../TestCase/bubble_sort.txt"), CFile::modeRead, NULL);
+	CFile infile(_T("../TestCase/SNL_Codes/bubble_sort.txt"), CFile::modeRead, NULL);
 	int len = infile.GetLength();
 	char* buf = new char[len + 2];
 	buf[len] = buf[len + 1] = '\0';
@@ -20,16 +20,15 @@ LexicalAnalyzer::LexicalAnalyzer()
 	mLex2String[LexType::IDENTIFIER] = _T("<IDENTIFIER>");
 	mLex2String[LexType::TYPE] = _T("<TYPE>");
 	mLex2String[LexType::UINTEGER] = _T("<UINTEGER>");
-	mLex2String[LexType::CHARACTER] = _T("<CHARACTER>");
+	mLex2String[LexType::ARRAY] = _T("<ARRAY>");
+	mLex2String[LexType::RECORD] = _T("<RECORD>");
+	mLex2String[LexType::OF] = _T("<OF>");
+	mLex2String[LexType::PROCEDURE] = _T("<PROCEDURE>");
 	mLex2String[LexType::EQU] = _T("<EQU>");
 	mLex2String[LexType::LT] = _T("<LT>");
 	mLex2String[LexType::LEXEOF] = _T("<LEXEOF>");
 	mLex2String[LexType::SPACE] = _T("<SPACE>");
 	mLex2String[LexType::INTEGER] = _T("<INTEGER>");
-	mLex2String[LexType::ARRAY] = _T("<ARRAY>");
-	mLex2String[LexType::RECORD] = _T("<RECORD>");
-	mLex2String[LexType::OF] = _T("<OF>");
-	mLex2String[LexType::PROCEDURE] = _T("<PROCEDURE>");
 	mLex2String[LexType::SEMICOLON] = _T("<SEMICOLON>");
 	mLex2String[LexType::VAR] = _T("<VAR>");
 	mLex2String[LexType::BEGIN] = _T("<BEGIN>");
@@ -41,6 +40,7 @@ LexicalAnalyzer::LexicalAnalyzer()
 	mLex2String[LexType::THEN] = _T("<THEN>");
 	mLex2String[LexType::ELSE] = _T("<ELSE>");
 	mLex2String[LexType::FI] = _T("<FI>");
+	mLex2String[LexType::CHARACTER] = _T("<CHARACTER>");
 	mLex2String[LexType::READ] = _T("<READ>");
 	mLex2String[LexType::WRITE] = _T("<WRITE>");
 	mLex2String[LexType::LPARENTHESIS] = _T("<LPARENTHESIS>");
@@ -57,6 +57,7 @@ LexicalAnalyzer::LexicalAnalyzer()
 	mLex2String[LexType::DOT] = _T("<DOT>");
 	mLex2String[LexType::RETURN] = _T("<RETURN>");
 	mLex2String[LexType::EPSILON] = _T("<EPSILON>");
+	mLex2String[LexType::LEXERR] = _T("<LEXERR>");
 
 	for (map<LexType, CString>::iterator it = mLex2String.begin(); it != mLex2String.end(); it++)
 		mString2Lex[it->second] = it->first;
