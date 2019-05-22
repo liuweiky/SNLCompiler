@@ -257,7 +257,7 @@ void CSNLCompilerDlg::OnBnClickedSyntaxParseButton()
 
 
 		}
-		CString s = parser.GetSyntaxTreeStr(_T(" "), _T(""), parser.mSytaxTree);
+		CString s = parser.GetSyntaxTreeStr(_T(" "), _T(""), parser.mSyntaxTree);
 		mSyntaxTreeEdit.SetWindowTextW(s);
 	}
 	else

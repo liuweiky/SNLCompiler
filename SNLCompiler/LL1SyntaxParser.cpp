@@ -15,7 +15,7 @@ LL1SyntaxParser::LL1SyntaxParser()
 	InitMap();
 	mTokenPtr = 0;
 	mCurLine = 1;
-	mSytaxTree = NULL;
+	mSyntaxTree = NULL;
 }
 
 LL1SyntaxParser::LL1SyntaxParser(vector<Token> tokens)
@@ -28,7 +28,7 @@ LL1SyntaxParser::LL1SyntaxParser(vector<Token> tokens)
 	InitMap();
 	mTokenPtr = 0;
 	mCurLine = 1;
-	mSytaxTree = NULL;
+	mSyntaxTree = NULL;
 }
 
 LL1SyntaxParser::~LL1SyntaxParser()
@@ -292,13 +292,13 @@ void LL1SyntaxParser::Parse()
 	SyntaxItem item(NodeType::Program, LexType::LEXERR);
 
 	stk.push(item);
-	mSytaxTree = new LL1TreeNode();
+	mSyntaxTree = new LL1TreeNode();
 
-	mSytaxTree->mNodeType = item.nodeType;
-	mSytaxTree->mLine = mCurLine;
+	mSyntaxTree->mNodeType = item.nodeType;
+	mSyntaxTree->mLine = mCurLine;
 
 	stack<LL1TreeNode*> s;
-	s.push(mSytaxTree);
+	s.push(mSyntaxTree);
 
 	mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, Utils::FormatCString(_T("Program pushed!"))));
 	

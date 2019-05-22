@@ -88,7 +88,7 @@ public:
 
 	int mTokenPtr;
 	int mCurLine;
-	LL1TreeNode* mSytaxTree;
+	LL1TreeNode* mSyntaxTree;
 
 	LexicalAnalyzer mLexicalAnalyzer;
 	vector<Token> mTokenList;
