@@ -75,6 +75,7 @@ public:
 	Token GetCurToken();
 
 	void InitMap();
+	CString GetSyntaxTreeStr(CString lftstr, CString append, LL1TreeNode* r);
 	void ReadProuctions();
 	vector<CString> SplitString(CString str, CString pattern);		// 读取产生式文件时用于分词
 
@@ -87,7 +88,7 @@ public:
 
 	int mTokenPtr;
 	int mCurLine;
-	LL1TreeNode* mSytaxTree;
+	LL1TreeNode* mSyntaxTree;
 
 	LexicalAnalyzer mLexicalAnalyzer;
 	vector<Token> mTokenList;

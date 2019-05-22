@@ -41,7 +41,7 @@ public:
 	int mCurLine;
 	LexicalAnalyzer mLexicalAnalyzer;
 
-	RTreeNode* mSytaxTree;
+	RTreeNode* mSyntaxTree;
 
 	RTreeNode* Parse();
 	RTreeNode* Program();

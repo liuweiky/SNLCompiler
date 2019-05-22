@@ -15,7 +15,7 @@ RSyntaxParser::RSyntaxParser()
 
 	mTokenPtr = 0;
 	mCurLine = mTokenList.size() == 0 ? 0 : mTokenList[0].line;
-	mSytaxTree = NULL;
+	mSyntaxTree = NULL;
 
 	InitMap();
 }
@@ -30,7 +30,7 @@ RSyntaxParser::RSyntaxParser(vector<Token> tokens)
 
 	mTokenPtr = 0;
 	mCurLine = mTokenList.size() == 0 ? 0 : mTokenList[0].line;
-	mSytaxTree = NULL;
+	mSyntaxTree = NULL;
 
 	InitMap();
 }
@@ -38,7 +38,7 @@ RSyntaxParser::RSyntaxParser(vector<Token> tokens)
 
 RSyntaxParser::~RSyntaxParser()
 {
-	ReleaseTree(mSytaxTree);
+	ReleaseTree(mSyntaxTree);
 }
 
 
@@ -76,7 +76,7 @@ RTreeNode* RSyntaxParser::Parse()
 		mParseLog.push_back(ParseLog(mCurLine, LogType::LERROR, _T("The code ends too early!")));
 		LogUtil::Error(_T("The code ends too early!"));
 	}
-	mSytaxTree = r;
+	mSyntaxTree = r;
 	return r;
 }
 
@@ -115,12 +115,13 @@ RTreeNode* RSyntaxParser::Program()
 		mParseLog.push_back(ParseLog(mCurLine, LogType::LERROR, _T("Missing [ProgramBody]")));
 		LogUtil::Error(Utils::FormatCString(_T("Missing ProgramBody near line %d"), mCurLine));
 	}
-
-	if (!Match(LexType::DOT))
+	Token t = GetCurToken();
+	if (Match(LexType::DOT))
 	{
 		/*CString s;
 		s.Format(_T("Missing <DOT> in line %d"), mCurLine);*/
 		//LogUtil::Error(Utils::FormatCString(_T("Missing <DOT> near line %d"), mCurLine));
+		prog->mChilds.push_back(GetMatchedTerminal(t));
 	}
 	mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("[Program] Finished")));
 	return prog;
