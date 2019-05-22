@@ -65,6 +65,7 @@ void CSNLCompilerDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_SRC_EDIT, mSrcEdit);
 	DDX_Control(pDX, IDC_TOKEN_LIST, mListControl);
 	DDX_Control(pDX, IDC_SYNTAXLOG_LIST, mSyntaxLogList);
+	DDX_Control(pDX, IDC_COMBO1, mCombo);
 }
 
 BEGIN_MESSAGE_MAP(CSNLCompilerDlg, CDialogEx)
@@ -128,6 +129,7 @@ BOOL CSNLCompilerDlg::OnInitDialog()
 	mSyntaxLogList.SetColumnWidth(2, 280);
 	// 设置整行选中
 	mSyntaxLogList.SetExtendedStyle(mSyntaxLogList.GetExtendedStyle() | LVS_EX_FULLROWSELECT);
+	mCombo.SetCurSel(0);
 
 	/*la.getTokenList();
 	la.Lex2File();*/
@@ -227,40 +229,86 @@ void CSNLCompilerDlg::OnBnClickedSyntaxParseButton()
 	//la.mOrignalSrcCode += "\0\0";
 	la.getTokenList();
 	la.Lex2File();
-	LL1SyntaxParser parser(la.mTokenList);
-	parser.Parse();
+	
 	mSyntaxLogList.DeleteAllItems();
 	if (mLexErrorFlag) {
-		for (int i = parser.mParseLog.size() - 1; i >= 0; i--)
+
+		CString selected;
+
+		mCombo.GetLBText(mCombo.GetCurSel(), selected);
+
+		if (selected == _T("LL1"))
 		{
-			CString str = _T("");
-			ParseLog log = parser.mParseLog[i];
-			int idx = mSyntaxLogList.InsertItem(0, Utils::int2cstr(log.line));
-			switch (log.type)
+			LL1SyntaxParser parser(la.mTokenList);
+			parser.Parse();
+			for (int i = parser.mParseLog.size() - 1; i >= 0; i--)
 			{
-			case LogType::LERROR:
-				mSyntaxLogList.SetItemText(idx, 1, _T("ERROR"));
-				break;
-			case LogType::LDEBUG:
-				mSyntaxLogList.SetItemText(idx, 1, _T("DEBUG"));
-				break;
-			case LogType::LINFO:
-				mSyntaxLogList.SetItemText(idx, 1, _T("INFO"));
-				break;
-			default:
-				break;
+				CString str = _T("");
+				ParseLog log = parser.mParseLog[i];
+				int idx = mSyntaxLogList.InsertItem(0, Utils::int2cstr(log.line));
+				switch (log.type)
+				{
+				case LogType::LERROR:
+					mSyntaxLogList.SetItemText(idx, 1, _T("ERROR"));
+					break;
+				case LogType::LDEBUG:
+					mSyntaxLogList.SetItemText(idx, 1, _T("DEBUG"));
+					break;
+				case LogType::LINFO:
+					mSyntaxLogList.SetItemText(idx, 1, _T("INFO"));
+					break;
+				default:
+					break;
+				}
+
+				mSyntaxLogList.SetItemText(idx, 2, log.log);
+
+
 			}
-
-			mSyntaxLogList.SetItemText(idx, 2, log.log);
-
-
+			CString s = parser.GetSyntaxTreeStr(_T(" "), _T(""), parser.mSyntaxTree);
+			//mSyntaxTreeEdit.SetWindowTextW(s);
+			SyntaxTreeDlg* dlg = new SyntaxTreeDlg;
+			dlg->mSyntax = s;
+			dlg->Create(IDD_SYNTAXTREE_DIALOG, this->GetDesktopWindow());
+			dlg->ShowWindow(SW_SHOW);
 		}
-		CString s = parser.GetSyntaxTreeStr(_T(" "), _T(""), parser.mSyntaxTree);
-		//mSyntaxTreeEdit.SetWindowTextW(s);
-		SyntaxTreeDlg* dlg = new SyntaxTreeDlg;
-		dlg->mSyntax = s;
-		dlg->Create(IDD_SYNTAXTREE_DIALOG, this->GetDesktopWindow());
-		dlg->ShowWindow(SW_SHOW);
+		else
+		{
+			RSyntaxParser parser(la.mTokenList);
+			parser.Parse();
+			for (int i = parser.mParseLog.size() - 1; i >= 0; i--)
+			{
+				CString str = _T("");
+				ParseLog log = parser.mParseLog[i];
+				int idx = mSyntaxLogList.InsertItem(0, Utils::int2cstr(log.line));
+				switch (log.type)
+				{
+				case LogType::LERROR:
+					mSyntaxLogList.SetItemText(idx, 1, _T("ERROR"));
+					break;
+				case LogType::LDEBUG:
+					mSyntaxLogList.SetItemText(idx, 1, _T("DEBUG"));
+					break;
+				case LogType::LINFO:
+					mSyntaxLogList.SetItemText(idx, 1, _T("INFO"));
+					break;
+				default:
+					break;
+				}
+
+				mSyntaxLogList.SetItemText(idx, 2, log.log);
+
+
+			}
+			CString s = parser.GetSyntaxTreeStr(_T(" "), _T(""), parser.mSyntaxTree);
+			//mSyntaxTreeEdit.SetWindowTextW(s);
+			SyntaxTreeDlg* dlg = new SyntaxTreeDlg;
+			dlg->mSyntax = s;
+			dlg->Create(IDD_SYNTAXTREE_DIALOG, this->GetDesktopWindow());
+			dlg->ShowWindow(SW_SHOW);
+		}
+
+		
 	}
 	else
 		MessageBox(_T("Please correct the error"));

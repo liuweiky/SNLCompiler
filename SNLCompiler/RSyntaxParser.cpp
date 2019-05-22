@@ -73,7 +73,7 @@ RTreeNode* RSyntaxParser::Parse()
 	RTreeNode* r = Program();
 	if (GetCurToken().lex != LexType::LEXEOF)
 	{
-		mParseLog.push_back(ParseLog(mCurLine, LogType::LERROR, _T("The code ends too early!")));
+		mParseLog.push_back(ParseLog(GetCurToken().line, LogType::LERROR, Utils::FormatCString(_T("Unexpected %s"), mLexicalAnalyzer.mLex2String[GetCurToken().lex])));
 		LogUtil::Error(_T("The code ends too early!"));
 	}
 	mSyntaxTree = r;

@@ -38,4 +38,5 @@ public:
 	CListCtrl mListControl;
 	CListCtrl mSyntaxLogList;
 	afx_msg void OnBnClickedSyntaxParseButton();
+	CComboBox mCombo;
 };
