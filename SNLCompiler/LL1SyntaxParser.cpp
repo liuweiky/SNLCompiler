@@ -15,6 +15,7 @@ LL1SyntaxParser::LL1SyntaxParser()
 	InitMap();
 	mTokenPtr = 0;
 	mCurLine = 1;
+	mSytaxTree = NULL;
 }
 
 LL1SyntaxParser::LL1SyntaxParser(vector<Token> tokens)
@@ -27,6 +28,7 @@ LL1SyntaxParser::LL1SyntaxParser(vector<Token> tokens)
 	InitMap();
 	mTokenPtr = 0;
 	mCurLine = 1;
+	mSytaxTree = NULL;
 }
 
 LL1SyntaxParser::~LL1SyntaxParser()
@@ -290,11 +292,18 @@ void LL1SyntaxParser::Parse()
 	SyntaxItem item(NodeType::Program, LexType::LEXERR);
 
 	stk.push(item);
-	mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, Utils::FormatCString(_T("Program pushed!"))));
+	mSytaxTree = new LL1TreeNode();
 
+	mSytaxTree->mNodeType = item.nodeType;
+	mSytaxTree->mLine = mCurLine;
+
+	stack<LL1TreeNode*> s;
+	s.push(mSytaxTree);
+
+	mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, Utils::FormatCString(_T("Program pushed!"))));
+	
 	while (stk.size() != 0 || GetCurToken().lex != LexType::LEXEOF)
 	{
-
 		if (stk.size() != 0 && stk.top().nodeType == NodeType::Terminal && stk.top().token == LexType::EPSILON)
 		{
 			stk.pop();
@@ -443,3 +452,4 @@ void LL1SyntaxParser::InitMap()
 		}
 	}
 }
+

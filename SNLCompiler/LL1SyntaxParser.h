@@ -12,6 +12,22 @@
 
 using namespace std;
 
+class LL1TreeNode
+{
+public:
+	LL1TreeNode()
+	{
+		//mSemName = _T("");
+		mLine = -1;
+		mNodeType = NodeType::Terminal;
+		mChilds = vector<LL1TreeNode*>();
+	}
+	vector<LL1TreeNode*> mChilds;
+	int mLine;
+	NodeType mNodeType;
+	Token mToken;
+};
+
 struct SyntaxItem
 {
 	SyntaxItem() 
@@ -71,6 +87,7 @@ public:
 
 	int mTokenPtr;
 	int mCurLine;
+	LL1TreeNode* mSytaxTree;
 
 	LexicalAnalyzer mLexicalAnalyzer;
 	vector<Token> mTokenList;
