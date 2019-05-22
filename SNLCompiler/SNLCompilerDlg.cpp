@@ -228,7 +228,7 @@ void CSNLCompilerDlg::OnBnClickedSyntaxParseButton()
 	//la.mOrignalSrcCode += "\0\0";
 	la.getTokenList();
 	la.Lex2File();
-	LL1SyntaxParser parser(la.mTokenList);
+	RSyntaxParser parser(la.mTokenList);
 	parser.Parse();
 	mSyntaxLogList.DeleteAllItems();
 	mSyntaxTreeEdit.SetWindowText(_T(""));
@@ -257,8 +257,8 @@ void CSNLCompilerDlg::OnBnClickedSyntaxParseButton()
 
 
 		}
-		//CString s = parser.GetSyntaxTreeStr(_T(" "), _T(""), parser.mSytaxTree);
-		//mSyntaxTreeEdit.SetWindowTextW(s);
+		CString s = parser.GetSyntaxTreeStr(_T(" "), _T(""), parser.mSytaxTree);
+		mSyntaxTreeEdit.SetWindowTextW(s);
 	}
 	else
 		MessageBox(_T("Please correct the error"));

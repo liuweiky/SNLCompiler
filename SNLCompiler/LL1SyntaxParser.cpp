@@ -307,6 +307,7 @@ void LL1SyntaxParser::Parse()
 		if (stk.size() != 0 && stk.top().nodeType == NodeType::Terminal && stk.top().token == LexType::EPSILON)
 		{
 			stk.pop();
+			s.pop();
 			continue;
 		}
 		if (stk.size() == 0)
@@ -337,6 +338,7 @@ void LL1SyntaxParser::Parse()
 				mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, Utils::FormatCString(_T("%s and %s matched!"), mLexicalAnalyzer.mLex2String[item.token], mLexicalAnalyzer.mLex2String[GetCurToken().lex])));
 				NextToken(); mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, Utils::FormatCString(_T("%s popped!"), mLexicalAnalyzer.mLex2String[stk.top().token])));
 				stk.pop();
+				s.pop();
 			}
 		}
 		else
@@ -350,14 +352,30 @@ void LL1SyntaxParser::Parse()
 			{
 				mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, Utils::FormatCString(_T("%s popped!"), mNodeType2Str[stk.top().nodeType])));
 				stk.pop();
+				LL1TreeNode* r = s.top();
+				s.pop();
 				vector<SyntaxItem> items = mLL1Map[item.nodeType][GetCurToken().lex];
 				for (int i = items.size() - 1; i >= 0; i--)
 				{
 					stk.push(items[i]);
+					LL1TreeNode* rp = new LL1TreeNode();
+					
 					if (items[i].nodeType == NodeType::Terminal)
+					{
+						rp->mNodeType = items[i].nodeType;
+						rp->mToken = Token(items[i].token);
+						rp->mLine = mCurLine;
+						r->mChilds.push_back(rp);
 						mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, Utils::FormatCString(_T("%s pushed!"), mLexicalAnalyzer.mLex2String[items[i].token])));
+					}
 					else
+					{
+						rp->mNodeType = items[i].nodeType;
+						rp->mLine = mCurLine;
+						r->mChilds.push_back(rp);
 						mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, Utils::FormatCString(_T("%s pushed!"), mNodeType2Str[items[i].nodeType])));
+					}
+					s.push(rp);
 				}
 				//NextToken();
 			}
@@ -453,3 +471,30 @@ void LL1SyntaxParser::InitMap()
 	}
 }
 
+
+CString LL1SyntaxParser::GetSyntaxTreeStr(CString lftstr, CString append, LL1TreeNode* r)
+{
+
+	CString b = append;
+	if (r->mNodeType == NodeType::Terminal)
+		//b += mLexicalAnalyzer.mLex2String[mLexicalAnalyzer.mReservedWords[r->mSemName]];
+
+	{
+		b += mLexicalAnalyzer.mLex2String[r->mToken.lex];
+	}
+	else
+		b += mNodeType2Str[r->mNodeType];
+	b += _T("\r\n");;
+
+	vector<LL1TreeNode*> childs = r->mChilds;
+	if (childs.size() > 0)
+	{
+		for (int i = childs.size() - 1; i > 0; i--)
+		{
+			b += (lftstr + GetSyntaxTreeStr(lftstr + _T("      | "), _T("      |-"), childs[i]));
+
+		}
+		b += (lftstr + GetSyntaxTreeStr(lftstr + _T("      "), _T("      |-"), childs[0]));
+	}
+	return b;
+}
