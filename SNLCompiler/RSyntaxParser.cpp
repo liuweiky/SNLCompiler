@@ -2336,6 +2336,7 @@ void RSyntaxParser::InitMap()
 	mNodeType2Str[NodeType::TypeId] = _T("TypeId");
 	mNodeType2Str[NodeType::TypeDef] = _T("TypeDef");
 	mNodeType2Str[NodeType::TypeDecMore] = _T("TypeDecMore");
+	mNodeType2Str[NodeType::TypeDeclaration] = _T("TypeDeclaration");
 	mNodeType2Str[NodeType::BaseType] = _T("BaseType");
 	mNodeType2Str[NodeType::StructureType] = _T("StructureType");
 	mNodeType2Str[NodeType::ArrayType] = _T("ArrayType");
