@@ -33,6 +33,7 @@ LL1SyntaxParser::LL1SyntaxParser(vector<Token> tokens)
 
 LL1SyntaxParser::~LL1SyntaxParser()
 {
+	ReleaseTree(mSyntaxTree);
 }
 
 void LL1SyntaxParser::NextToken()
@@ -497,4 +498,16 @@ CString LL1SyntaxParser::GetSyntaxTreeStr(CString lftstr, CString append, LL1Tre
 		b += (lftstr + GetSyntaxTreeStr(lftstr + _T("      "), _T("      |-"), childs[0]));
 	}
 	return b;
+}
+
+void LL1SyntaxParser::ReleaseTree(LL1TreeNode* r)
+{
+	if (r == NULL)
+		return;
+	for (int i = 0; i < r->mChilds.size(); i++)
+	{
+		ReleaseTree(r->mChilds[i]);
+	}
+	delete r;
+	r = NULL;
 }

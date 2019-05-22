@@ -76,6 +76,7 @@ public:
 
 	void InitMap();
 	CString GetSyntaxTreeStr(CString lftstr, CString append, LL1TreeNode* r);
+	void ReleaseTree(LL1TreeNode* r);
 	void ReadProuctions();
 	vector<CString> SplitString(CString str, CString pattern);		// 读取产生式文件时用于分词
 

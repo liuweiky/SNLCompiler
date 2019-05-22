@@ -14,7 +14,7 @@ IMPLEMENT_DYNAMIC(SyntaxTreeDlg, CDialogEx)
 SyntaxTreeDlg::SyntaxTreeDlg(CWnd* pParent /*=nullptr*/)
 	: CDialogEx(IDD_SYNTAXTREE_DIALOG, pParent)
 {
-
+	
 }
 
 SyntaxTreeDlg::~SyntaxTreeDlg()
@@ -29,31 +29,24 @@ void SyntaxTreeDlg::DoDataExchange(CDataExchange* pDX)
 
 
 BEGIN_MESSAGE_MAP(SyntaxTreeDlg, CDialogEx)
-	ON_EN_CHANGE(IDC_TREEEDIT, &SyntaxTreeDlg::OnEnChangeTreeedit)
-	ON_EN_CHANGE(IDC_SYNTAX_TREE_EDIT, &SyntaxTreeDlg::OnEnChangeSyntaxTreeEdit)
+	ON_WM_SHOWWINDOW()
 END_MESSAGE_MAP()
 
 
 // SyntaxTreeDlg 消息处理程序
 
-
-void SyntaxTreeDlg::OnEnChangeTreeedit()
+void SyntaxTreeDlg::OnShowWindow(BOOL bShow, UINT nStatus)
 {
-	// TODO:  如果该控件是 RICHEDIT 控件，它将不
-	// 发送此通知，除非重写 CDialogEx::OnInitDialog()
-	// 函数并调用 CRichEditCtrl().SetEventMask()，
-	// 同时将 ENM_CHANGE 标志“或”运算到掩码中。
-
-	// TODO:  在此添加控件通知处理程序代码
+	CDialogEx::OnShowWindow(bShow, nStatus);
+	mSyntaxTreeEdit.SetWindowTextW(mSyntax);
+	// TODO: 在此处添加消息处理程序代码
 }
 
 
-void SyntaxTreeDlg::OnEnChangeSyntaxTreeEdit()
+void SyntaxTreeDlg::PostNcDestroy()
 {
-	// TODO:  如果该控件是 RICHEDIT 控件，它将不
-	// 发送此通知，除非重写 CDialogEx::OnInitDialog()
-	// 函数并调用 CRichEditCtrl().SetEventMask()，
-	// 同时将 ENM_CHANGE 标志“或”运算到掩码中。
+	// TODO: 在此添加专用代码和/或调用基类
 
-	// TODO:  在此添加控件通知处理程序代码
+	CDialogEx::PostNcDestroy();
+	delete this;
 }

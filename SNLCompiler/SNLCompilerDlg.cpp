@@ -65,7 +65,6 @@ void CSNLCompilerDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_SRC_EDIT, mSrcEdit);
 	DDX_Control(pDX, IDC_TOKEN_LIST, mListControl);
 	DDX_Control(pDX, IDC_SYNTAXLOG_LIST, mSyntaxLogList);
-	DDX_Control(pDX, IDC_SYNTAX_TREE_EDIT, mSyntaxTreeEdit);
 }
 
 BEGIN_MESSAGE_MAP(CSNLCompilerDlg, CDialogEx)
@@ -228,10 +227,9 @@ void CSNLCompilerDlg::OnBnClickedSyntaxParseButton()
 	//la.mOrignalSrcCode += "\0\0";
 	la.getTokenList();
 	la.Lex2File();
-	RSyntaxParser parser(la.mTokenList);
+	LL1SyntaxParser parser(la.mTokenList);
 	parser.Parse();
 	mSyntaxLogList.DeleteAllItems();
-	mSyntaxTreeEdit.SetWindowText(_T(""));
 	if (mLexErrorFlag) {
 		for (int i = parser.mParseLog.size() - 1; i >= 0; i--)
 		{
@@ -257,11 +255,12 @@ void CSNLCompilerDlg::OnBnClickedSyntaxParseButton()
 
 
 		}
-		CString s = parser.GetSyntaxTreeStr(_T(" "), _T(""), parser.mSytaxTree);
+		CString s = parser.GetSyntaxTreeStr(_T(" "), _T(""), parser.mSyntaxTree);
 		//mSyntaxTreeEdit.SetWindowTextW(s);
-		SyntaxTreeDlg dlg;
-		dlg.mSyntax = s;
-		dlg.DoModal();
+		SyntaxTreeDlg* dlg = new SyntaxTreeDlg;
+		dlg->mSyntax = s;
+		dlg->Create(IDD_SYNTAXTREE_DIALOG, this->GetDesktopWindow());
+		dlg->ShowWindow(SW_SHOW);
 	}
 	else
 		MessageBox(_T("Please correct the error"));
