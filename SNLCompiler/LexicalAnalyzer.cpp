@@ -3,15 +3,6 @@
 
 LexicalAnalyzer::LexicalAnalyzer()
 {
-	/*CFile infile(_T("../TestCase/SNL_Codes/bubble_sort.txt"), CFile::modeRead, NULL);
-	int len = infile.GetLength();
-	char* buf = new char[len + 2];
-	buf[len] = buf[len + 1] = '\0';
-	infile.Read(buf, len);
-	mOrignalSrcCode = buf;
-	delete[] buf;
-	infile.Close();*/
-	
 	mOrignalSrcCode = _T("");
 
 	mSrcPtr = 0;

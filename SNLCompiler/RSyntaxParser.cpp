@@ -2382,11 +2382,7 @@ CString RSyntaxParser::GetSyntaxTreeStr(CString lftstr, CString append, RTreeNod
 
 	CString b = append;
 	if (r->mNodeType == NodeType::Terminal)
-		//b += mLexicalAnalyzer.mLex2String[mLexicalAnalyzer.mReservedWords[r->mSemName]];
-
-	{
 		b += mLexicalAnalyzer.mLex2String[r->mToken.lex];
-	}
 	else
 		b += mNodeType2Str[r->mNodeType];
 	b += _T("\r\n");;
@@ -2395,10 +2391,7 @@ CString RSyntaxParser::GetSyntaxTreeStr(CString lftstr, CString append, RTreeNod
 	if (childs.size() > 0)
 	{
 		for (int i = 0; i < childs.size() - 1; i++)
-		{
 			b += (lftstr + GetSyntaxTreeStr(lftstr + _T("      | "), _T("      |-"), childs[i]));
-			
-		}
 		b += (lftstr + GetSyntaxTreeStr(lftstr + _T("      "), _T("      |-"), childs[childs.size() - 1]));
 	}
 	return b;

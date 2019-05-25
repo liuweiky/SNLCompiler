@@ -311,7 +311,7 @@ void CSNLCompilerDlg::OnBnClickedOpenFileButton()
 	// 构造打开文件对话框   
 	CFileDialog fileDlg(TRUE, _T("txt"), NULL, 0, filter, this);
 	CString path;
-  
+
 	if (IDOK == fileDlg.DoModal())
 	{
 		path = fileDlg.GetPathName();
