@@ -43,6 +43,12 @@ public:
 
 	RTreeNode* mSyntaxTree;
 
+	void NextToken();
+	Token GetCurToken();
+	bool Match(LexType type);
+
+	void InitMap();
+
 	RTreeNode* Parse();
 	RTreeNode* Program();
 	RTreeNode* ProgramHead();
@@ -92,11 +98,7 @@ public:
 	RTreeNode* AddOp();
 	RTreeNode* MultOp();
 	RTreeNode* ProgramBody();
-
 	RTreeNode* ProgramName();
-	void NextToken();
-	Token GetCurToken();
-
 	RTreeNode* VarDecMore();
 	RTreeNode* TypeDec();
 	RTreeNode* TypeDeclaration();
@@ -111,13 +113,11 @@ public:
 	RTreeNode* IdList();
 	RTreeNode* IdMore();
 	RTreeNode* FieldDecMore();
-	bool Match(LexType type);
-	RTreeNode* GetMatchedTerminal(Token t);
-	void ReleaseTree(RTreeNode* r);
 
-	void RecordLog(LogType type, int line, CString log);
-	void InitMap();
+	RTreeNode* GetMatchedTerminal(Token t);
+
 	CString GetSyntaxTreeStr(CString lftstr, CString append, RTreeNode* r);
-	CString GetStrByLen(int len);
+
+	void ReleaseTree(RTreeNode* r);
 };
 

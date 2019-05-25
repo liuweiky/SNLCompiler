@@ -115,11 +115,10 @@ BOOL CSNLCompilerDlg::OnInitDialog()
 	mListControl.InsertColumn(2, _T("SEM"));
 	mListControl.SetColumnWidth(0, 40);
 	mListControl.SetColumnWidth(1, 140);
-	mListControl.SetColumnWidth(2, 100);
-	// 设置整行选中
-	mListControl.SetExtendedStyle(mListControl.GetExtendedStyle() | LVS_EX_FULLROWSELECT);
+	mListControl.SetColumnWidth(2, 140);
 
-	
+	// 设置整行选中
+	mListControl.SetExtendedStyle(mListControl.GetExtendedStyle() | LVS_EX_FULLROWSELECT);	
 
 	mSyntaxLogList.InsertColumn(0, _T("LINE"));
 	mSyntaxLogList.InsertColumn(1, _T("TYPE"));
@@ -127,17 +126,11 @@ BOOL CSNLCompilerDlg::OnInitDialog()
 	mSyntaxLogList.SetColumnWidth(0, 40);
 	mSyntaxLogList.SetColumnWidth(1, 50);
 	mSyntaxLogList.SetColumnWidth(2, 280);
+
 	// 设置整行选中
 	mSyntaxLogList.SetExtendedStyle(mSyntaxLogList.GetExtendedStyle() | LVS_EX_FULLROWSELECT);
+
 	mCombo.SetCurSel(0);
-
-	/*la.getTokenList();
-	la.Lex2File();*/
-	/*LogUtil::Error(Utils::FormatCString(_T("Missing <DOT> in line %d"), 5));*/
-
-	/*RSyntaxParser parser;
-	RTreeNode* r = parser.Parse();
-	parser.ReleaseTree(r);*/
 
 	return TRUE;  // 除非将焦点设置到控件，否则返回 TRUE
 }
@@ -199,14 +192,14 @@ void CSNLCompilerDlg::OnBnClickedTokenButton()
 	mSrcEdit.GetWindowTextW(la.mOrignalSrcCode);
 	//la.mOrignalSrcCode += "\0\0";
 	la.getTokenList();
-	la.Lex2File();
+	//la.Lex2File();
 	mListControl.DeleteAllItems();
 	mLexErrorFlag = true;
 	for (int i = la.mTokenList.size() - 1; i >= 0; i--)
 	{
 		CString str = _T("");
 		Token t = la.mTokenList[i];
-		int idx = mListControl.InsertItem(0, Utils::int2cstr(t.line));
+		int idx = mListControl.InsertItem(0, Utils::Int2Cstr(t.line));
 		if (t.lex == LexType::LEXERR)
 		{
 			mListControl.SetItemText(idx, 1, _T("[ERROR] Unexpected symbol"));
@@ -228,7 +221,7 @@ void CSNLCompilerDlg::OnBnClickedSyntaxParseButton()
 	mSrcEdit.GetWindowTextW(la.mOrignalSrcCode);
 	//la.mOrignalSrcCode += "\0\0";
 	la.getTokenList();
-	la.Lex2File();
+	//la.Lex2File();
 	
 	mSyntaxLogList.DeleteAllItems();
 	if (mLexErrorFlag) {
@@ -245,7 +238,7 @@ void CSNLCompilerDlg::OnBnClickedSyntaxParseButton()
 			{
 				CString str = _T("");
 				ParseLog log = parser.mParseLog[i];
-				int idx = mSyntaxLogList.InsertItem(0, Utils::int2cstr(log.line));
+				int idx = mSyntaxLogList.InsertItem(0, Utils::Int2Cstr(log.line));
 				switch (log.type)
 				{
 				case LogType::LERROR:
@@ -262,8 +255,6 @@ void CSNLCompilerDlg::OnBnClickedSyntaxParseButton()
 				}
 
 				mSyntaxLogList.SetItemText(idx, 2, log.log);
-
-
 			}
 			CString s = parser.GetSyntaxTreeStr(_T(" "), _T(""), parser.mSyntaxTree);
 			//mSyntaxTreeEdit.SetWindowTextW(s);
@@ -280,7 +271,7 @@ void CSNLCompilerDlg::OnBnClickedSyntaxParseButton()
 			{
 				CString str = _T("");
 				ParseLog log = parser.mParseLog[i];
-				int idx = mSyntaxLogList.InsertItem(0, Utils::int2cstr(log.line));
+				int idx = mSyntaxLogList.InsertItem(0, Utils::Int2Cstr(log.line));
 				switch (log.type)
 				{
 				case LogType::LERROR:
@@ -297,8 +288,6 @@ void CSNLCompilerDlg::OnBnClickedSyntaxParseButton()
 				}
 
 				mSyntaxLogList.SetItemText(idx, 2, log.log);
-
-
 			}
 			CString s = parser.GetSyntaxTreeStr(_T(" "), _T(""), parser.mSyntaxTree);
 			//mSyntaxTreeEdit.SetWindowTextW(s);

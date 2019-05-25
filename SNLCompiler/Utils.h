@@ -8,8 +8,8 @@ class Utils
 public:
 	Utils();
 	~Utils();
-	static int cstr2int(CString str);
-	static CString int2cstr(int s);
+	static int Cstr2Int(CString str);
+	static CString Int2Cstr(int s);
 	template <typename ... Types>
 	static CString FormatCString(CString format, const Types& ... args)
 	{

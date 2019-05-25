@@ -70,7 +70,7 @@ void LL1SyntaxParser::ReadProuctions()
 		CString snum = line.Left(line.Find(_T(" ")));
 		line = line.Mid(snum.GetLength(), line.GetLength() - snum.GetLength());
 		line.TrimLeft();
-		int num = Utils::cstr2int(snum);
+		int num = Utils::Cstr2Int(snum);
 		vector<CString> sp1 = SplitString(line, _T(" ::= "));
 		vector<CString> sp2 = SplitString(sp1[1], _T(" "));
 		LogUtil::Debug(snum);
@@ -478,11 +478,7 @@ CString LL1SyntaxParser::GetSyntaxTreeStr(CString lftstr, CString append, LL1Tre
 
 	CString b = append;
 	if (r->mNodeType == NodeType::Terminal)
-		//b += mLexicalAnalyzer.mLex2String[mLexicalAnalyzer.mReservedWords[r->mSemName]];
-
-	{
 		b += mLexicalAnalyzer.mLex2String[r->mToken.lex];
-	}
 	else
 		b += mNodeType2Str[r->mNodeType];
 	b += _T("\r\n");;
@@ -491,10 +487,7 @@ CString LL1SyntaxParser::GetSyntaxTreeStr(CString lftstr, CString append, LL1Tre
 	if (childs.size() > 0)
 	{
 		for (int i = childs.size() - 1; i > 0; i--)
-		{
 			b += (lftstr + GetSyntaxTreeStr(lftstr + _T("      | "), _T("      |-"), childs[i]));
-
-		}
 		b += (lftstr + GetSyntaxTreeStr(lftstr + _T("      "), _T("      |-"), childs[0]));
 	}
 	return b;

@@ -62,10 +62,8 @@ Token RSyntaxParser::GetCurToken()
 		return mTokenList[mTokenPtr];
 }
 
-// 该函数调用总程序处理函数，创建语法分析树。
-// 同时处理文件的提前结束错误。
-// 函数处理成功，则返回所生成的语句类型语法树节点。
-// 否则，函数返回NULL。
+
+// 语法分析入口
 RTreeNode* RSyntaxParser::Parse()
 {
 	mParseLog.push_back(ParseLog(mCurLine, LogType::LINFO, _T("Now begin parsing. Good luck!")));
@@ -1207,6 +1205,12 @@ RTreeNode* RSyntaxParser::IdMore()
 	}
 	else if (GetCurToken().lex == LexType::COMMA)
 	{
+		Token t = GetCurToken();
+
+		if (Match(LexType::COMMA))
+		{
+			idm->mChilds.push_back(GetMatchedTerminal(t));
+		}
 		idm->mChilds.push_back(IdList());
 	}
 	else
@@ -2304,22 +2308,6 @@ void RSyntaxParser::ReleaseTree(RTreeNode* r)
 	r = NULL;
 }
 
-void RSyntaxParser::RecordLog(LogType type, int line, CString log)
-{
-	switch (type)
-	{
-	case LERROR:
-
-		break;
-	case LINFO:
-		break;
-	case LDEBUG:
-		break;
-	default:
-		break;
-	}
-}
-
 void RSyntaxParser::InitMap()
 {
 	mNodeType2Str[NodeType::Program] = _T("Program");
@@ -2416,10 +2404,3 @@ CString RSyntaxParser::GetSyntaxTreeStr(CString lftstr, CString append, RTreeNod
 	return b;
 }
 
-CString RSyntaxParser::GetStrByLen(int len)
-{
-	CString str = _T("");
-	for (int i = 0; i < len; i++)
-		str += "-";
-	return str;
-}

@@ -3,15 +3,16 @@
 
 LexicalAnalyzer::LexicalAnalyzer()
 {
-	CFile infile(_T("../TestCase/SNL_Codes/bubble_sort.txt"), CFile::modeRead, NULL);
+	/*CFile infile(_T("../TestCase/SNL_Codes/bubble_sort.txt"), CFile::modeRead, NULL);
 	int len = infile.GetLength();
 	char* buf = new char[len + 2];
 	buf[len] = buf[len + 1] = '\0';
 	infile.Read(buf, len);
 	mOrignalSrcCode = buf;
 	delete[] buf;
-	infile.Close();
+	infile.Close();*/
 	
+	mOrignalSrcCode = _T("");
 
 	mSrcPtr = 0;
 	mCurLine = 1;
@@ -336,7 +337,7 @@ INERROR:
 		Token t(mCurLine, LexType::LEXERR, str + cur_char);
 		mTokenList.push_back(t);
 		CString s = _T("Unexpected symbol \"");
-		LogUtil::Error(s + cur_char + "\" in line " + Utils::int2cstr(mCurLine));
+		LogUtil::Error(s + cur_char + "\" in line " + Utils::Int2Cstr(mCurLine));
 		str = "";
 		/*cur_char = getNextChar();
 		while (!isSingleDelimiter(cur_char))
@@ -364,13 +365,13 @@ void LexicalAnalyzer::Lex2File()
 			outstr += _T("[ERROR] Unexpected symbol \"");
 			outstr += t.sem;
 			outstr += _T("\" in line ");
-			outstr += Utils::int2cstr(t.line);
+			outstr += Utils::Int2Cstr(t.line);
 			outstr += "\r\n";
 			continue;
 		}
 		CString linestr = _T("");
 		linestr += _T("LINE ");
-		linestr += Utils::int2cstr(t.line);
+		linestr += Utils::Int2Cstr(t.line);
 		linestr += _T(": ");
 		int k = 10 - linestr.GetLength();
 		if (k > 0)
@@ -399,7 +400,6 @@ bool LexicalAnalyzer::isDelimiter(CString ch)
 
 bool LexicalAnalyzer::isSingleDelimiter(CString ch)
 {
-
 	return (
 		ch == "+" || ch == "-" || ch == "*" || ch == "/"
 		|| ch == "(" || ch == ")" || ch == ";" || ch == "["
@@ -412,7 +412,6 @@ bool LexicalAnalyzer::isSingleDelimiter(CString ch)
 
 bool LexicalAnalyzer::isReservedWord(CString word)
 {
-
 	return mReservedWords.find(word) != mReservedWords.end();
 }
 
