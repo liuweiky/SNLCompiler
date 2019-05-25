@@ -10,6 +10,7 @@ public:
 	~Utils();
 	static int Cstr2Int(CString str);
 	static CString Int2Cstr(int s);
+	static CString ReadSrc(CString path);
 	template <typename ... Types>
 	static CString FormatCString(CString format, const Types& ... args)
 	{

@@ -11,7 +11,6 @@ class CSNLCompilerDlg : public CDialogEx
 // 构造
 public:
 	CSNLCompilerDlg(CWnd* pParent = nullptr);	// 标准构造函数
-	bool mLexErrorFlag;
 
 // 对话框数据
 #ifdef AFX_DESIGN_TIME
@@ -39,4 +38,7 @@ public:
 	CListCtrl mSyntaxLogList;
 	afx_msg void OnBnClickedSyntaxParseButton();
 	CComboBox mCombo;
+	afx_msg void OnBnClickedOpenFileButton();
+	bool mLexErrorFlag;
+	afx_msg void OnEnChangeSrcEdit();
 };

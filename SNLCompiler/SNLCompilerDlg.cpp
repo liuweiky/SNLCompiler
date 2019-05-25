@@ -74,6 +74,8 @@ BEGIN_MESSAGE_MAP(CSNLCompilerDlg, CDialogEx)
 	ON_WM_QUERYDRAGICON()
 	ON_BN_CLICKED(IDC_TOKEN_BUTTON, &CSNLCompilerDlg::OnBnClickedTokenButton)
 	ON_BN_CLICKED(IDC_SYNTAX_PARSE_BUTTON, &CSNLCompilerDlg::OnBnClickedSyntaxParseButton)
+	ON_BN_CLICKED(IDC_OPEN_FILE_BUTTON, &CSNLCompilerDlg::OnBnClickedOpenFileButton)
+	ON_EN_CHANGE(IDC_SRC_EDIT, &CSNLCompilerDlg::OnEnChangeSrcEdit)
 END_MESSAGE_MAP()
 
 
@@ -296,9 +298,38 @@ void CSNLCompilerDlg::OnBnClickedSyntaxParseButton()
 			dlg->Create(IDD_SYNTAXTREE_DIALOG, this->GetDesktopWindow());
 			dlg->ShowWindow(SW_SHOW);
 		}
-
-		
 	}
 	else
-		MessageBox(_T("Please correct the error"));
+		MessageBox(_T("Please run LexicalAnalyzer first or correct the error!"));
+}
+
+
+void CSNLCompilerDlg::OnBnClickedOpenFileButton()
+{
+	// TODO: 在此添加控件通知处理程序代码
+	TCHAR filter[] = _T("文本文件(*.txt)|*.txt|所有文件(*.*)|*.*||");
+	// 构造打开文件对话框   
+	CFileDialog fileDlg(TRUE, _T("txt"), NULL, 0, filter, this);
+	CString path;
+  
+	if (IDOK == fileDlg.DoModal())
+	{
+		path = fileDlg.GetPathName();
+		mSrcEdit.SetWindowTextW(Utils::ReadSrc(path));
+		mLexErrorFlag = false;
+		mListControl.DeleteAllItems();
+		mSyntaxLogList.DeleteAllItems();
+	}
+}
+
+
+void CSNLCompilerDlg::OnEnChangeSrcEdit()
+{
+	// TODO:  如果该控件是 RICHEDIT 控件，它将不
+	// 发送此通知，除非重写 CDialogEx::OnInitDialog()
+	// 函数并调用 CRichEditCtrl().SetEventMask()，
+	// 同时将 ENM_CHANGE 标志“或”运算到掩码中。
+
+	// TODO:  在此添加控件通知处理程序代码
+	mLexErrorFlag = false;
 }
